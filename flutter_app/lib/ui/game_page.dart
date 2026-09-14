@@ -15,6 +15,7 @@ import '../state/app_state.dart';
 import '../widgets/merge_chain_strip.dart';
 import 'theme.dart';
 import 'game_over_page.dart';
+import 'tutorial_dialog.dart';
 
 /// Port of buildGameScreen() + the physics/game-loop wiring in app.js
 /// (§7 Game, §8 Physics, §9 Drop control). Hosts the FruitMergeGame board
@@ -87,13 +88,27 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         });
       },
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       _appState.resetScore();
       if (widget.savedRun != null) {
         _game.restore(widget.savedRun!);
         _appState.addScore(widget.savedRun!.score);
         _openPause();
+      } else if (!_appState.tutorialSeen) {
+        _paused = true;
+        _game.pauseEngine();
+        await showTutorial(context);
+        if (!mounted) return;
+        _appState.tutorialSeen = true;
+        await _appState.persist();
+        if (!mounted) return;
+        _paused = false;
+        if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+          _game.resumeEngine();
+        } else {
+          _openPause();
+        }
       }
       _autosave = Timer.periodic(const Duration(seconds: 2), (_) { if (!_paused) _save(); });
       _save();
@@ -142,10 +157,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     await _sfx.stopMusic(); // app.js gameOver(): stopMusic()
     final snapshot = await _captureBoardSnapshot();
     final score = _appState.score;
+    final newRecord = score > _appState.highScore;
     final earned = _appState.recordGameOver(runId: _runId, highestLevel: _game.fruits.fold<int>(0, (level, fruit) => fruit.index > level ? fruit.index : level));
     if (!mounted) return;
     final again = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => GameOverPage(score: score, earned: earned, boardSnapshot: snapshot)),
+      MaterialPageRoute(builder: (_) => GameOverPage(score: score, earned: earned, boardSnapshot: snapshot, newRecord: newRecord)),
     );
     if (!mounted) return;
     if (again == true) {
@@ -256,6 +272,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     ),
                   ],
                 ),
+                ValueListenableBuilder<String>(valueListenable: _game.statusText, builder: (_, text, _) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6), child: Text(text, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.coral, fontWeight: FontWeight.w600)))),
                 Expanded(
                   child: Center(
                     child: AspectRatio(

@@ -56,8 +56,22 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   int currentIndex = _randomDropIndex();
   final ValueNotifier<int> nextIndexNotifier = ValueNotifier(_randomDropIndex());
   double dropX = pw / 2;
+  final ValueNotifier<String> statusText = ValueNotifier('Siap • ketuk papan');
+  bool madeWatermelon = false;
+  int _combo = 0;
+  double _lastMerge = -100;
+  double _celebrateUntil = -1;
+  void _updateStatus() {
+    final danger = fruits.where((f) => !f.dead).fold<double>(0, (value, f) => math.max(value, f.overMs));
+    final cooling = _clock * 1000 - _lastDropAtMs < dropCooldownMs;
+    statusText.value = danger > 0 ? 'Bahaya • ${((overLimitMs - danger) / 1000).clamp(0, 2.9).toStringAsFixed(1)} dtk' :
+      _clock < _celebrateUntil ? 'Semangka pertama! 🍉' :
+      _combo >= 3 && _clock - _lastMerge <= 1 ? 'Combo ×$_combo!' :
+      cooling ? 'Tunggu sebentar…' : 'Siap • ketuk papan';
+  }
   RunSnapshot snapshot(String id, int score) => RunSnapshot({
     'version': 1, 'id': id, 'score': score, 'clock': _clock,
+    'watermelon': madeWatermelon, 'combo': _combo, 'lastMerge': _lastMerge,
     'current': currentIndex, 'next': nextIndexNotifier.value, 'dropX': dropX,
     'cooldown': (dropCooldownMs - (_clock * 1000 - _lastDropAtMs)).clamp(0, dropCooldownMs),
     'fruits': fruits.where((f) => !f.dead).map((f) => {
@@ -72,6 +86,9 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     final d = snapshot.data;
     resetBoard();
     _clock = (d['clock'] as num).toDouble();
+    madeWatermelon = d['watermelon'] == true;
+    _combo = (d['combo'] as int?) ?? 0;
+    _lastMerge = (d['lastMerge'] as num?)?.toDouble() ?? -100;
     currentIndex = d['current'] as int;
     nextIndexNotifier.value = d['next'] as int;
     dropX = (d['dropX'] as num).toDouble().clamp(pw * .08, pw * .92);
@@ -147,6 +164,7 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     }
     _postStep(stepDt);
     fruits.removeWhere((f) => f.dead);
+    _updateStatus();
   }
 
   /// Pushes [f] back inside the board and reports which way it was moved
@@ -304,6 +322,12 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
 
   void _spawnMergeResult(FruitBody a, FruitBody b) {
     final newIndex = a.index + 1;
+    _combo = _clock - _lastMerge <= 1 ? _combo + 1 : 1;
+    _lastMerge = _clock;
+    if (newIndex == 9 && !madeWatermelon) {
+      madeWatermelon = true;
+      _celebrateUntil = _clock + 2;
+    }
     final r = kFruits[newIndex].size / 2;
     final mid = (a.position + b.position) / 2;
     final x = mid.x.clamp(r + 1, pw - r - 1);
@@ -378,9 +402,15 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     onDrop();
     currentIndex = nextIndexNotifier.value;
     nextIndexNotifier.value = _randomDropIndex();
+    _updateStatus();
   }
 
   void resetBoard() {
+    madeWatermelon = false;
+    _combo = 0;
+    _lastMerge = -100;
+    _celebrateUntil = -1;
+    statusText.value = 'Siap • ketuk papan';
     fruits.clear();
     gameOverFired = false;
     _clock = 0;

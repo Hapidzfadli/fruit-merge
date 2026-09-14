@@ -18,8 +18,9 @@ class GameOverPage extends StatelessWidget {
   final int score;
   final int earned;
   final Uint8List? boardSnapshot;
+  final bool newRecord;
 
-  const GameOverPage({super.key, required this.score, required this.earned, this.boardSnapshot});
+  const GameOverPage({super.key, required this.score, required this.earned, this.boardSnapshot, this.newRecord = false});
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +35,7 @@ class GameOverPage extends StatelessWidget {
               children: [
                 const Text('Permainan Selesai', textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.coral)),
                 const SizedBox(height: 22),
+                if (newRecord) const Padding(padding: EdgeInsets.only(bottom: 12), child: Text('Rekor baru! 🏆', style: TextStyle(color: AppColors.coral, fontWeight: FontWeight.bold))),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

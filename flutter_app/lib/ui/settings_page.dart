@@ -4,6 +4,7 @@ import '../audio/sfx_service.dart';
 import '../state/app_state.dart';
 import '../widgets/app_back_button.dart';
 import 'theme.dart';
+import 'tutorial_dialog.dart';
 
 /// Port of buildSettingsScreen() (app.js:432-468).
 class SettingsPage extends StatelessWidget {
@@ -48,6 +49,8 @@ class SettingsPage extends StatelessWidget {
                 appState.toggleVibration();
               }),
               const SizedBox(height: 26),
+              SecondaryButton(label: 'Cara Bermain', onPressed: () => showTutorial(context)),
+              const SizedBox(height: 12),
               SecondaryButton(label: 'Data & Penyimpanan', onPressed: () => showDialog<void>(context: context, builder: (c) => AlertDialog(
                 title: const Text('Data & Penyimpanan'),
                 content: const SingleChildScrollView(child: Text('Skor, koin, skin, pengaturan, dan pertandingan tersimpan di perangkat ini. Game ini tidak menyediakan akun atau sinkronisasi server. Menghapus data aplikasi dapat menghapus progres. Pemulihan setelah penutupan paksa menggunakan simpanan otomatis terakhir.')),

@@ -24,6 +24,7 @@ class AppState extends ChangeNotifier {
   bool music = true;
   bool sfx = true;
   bool vibration = true;
+  bool tutorialSeen = false;
   RunSnapshot? activeRun;
   List<String> completedRuns = [];
   List<Map<String, dynamic>> ranking = [];
@@ -74,6 +75,7 @@ class AppState extends ChangeNotifier {
       music = data['music'] != false;
       sfx = data['sfx'] != false;
       vibration = data['vibration'] != false;
+      tutorialSeen = data['tutorialSeen'] == true;
       collection = (data['collection'] as List? ?? []).whereType<int>().where((i) => i >= 1 && i <= 9).toSet();
       achievements = (data['achievements'] as List? ?? []).whereType<String>().where(achievementRewards.containsKey).toSet();
       activeRun = RunSnapshot.parse(data['activeRun']);
@@ -97,6 +99,7 @@ class AppState extends ChangeNotifier {
       'music': music,
       'sfx': sfx,
       'vibration': vibration,
+      'tutorialSeen': tutorialSeen,
       'activeRun': activeRun?.data,
       'completedRuns': completedRuns,
       'ranking': ranking,
