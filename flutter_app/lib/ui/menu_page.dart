@@ -6,6 +6,7 @@ import 'theme.dart';
 import 'settings_page.dart';
 import 'shop_page.dart';
 import 'game_page.dart';
+import '../state/app_state.dart';
 
 /// Port of buildMenuScreen() (app.js:169-202).
 class MenuPage extends StatelessWidget {
@@ -13,6 +14,7 @@ class MenuPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: kScreenGradient),
@@ -62,12 +64,22 @@ class MenuPage extends StatelessWidget {
                             label: 'PLAY',
                             fontSize: 22,
                             padding: const EdgeInsets.symmetric(vertical: 18),
-                            onPressed: () {
+                            onPressed: () async {
+                              if (state.activeRun != null) {
+                                final replace = await showDialog<bool>(context: context, builder: (c) => AlertDialog(
+                                  title: const Text('Main baru?'), content: const Text('Permainan tersimpan akan diganti.'),
+                                  actions: [TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Batal')),
+                                    TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Main Baru'))],
+                                ));
+                                if (replace != true || !context.mounted) return;
+                              }
                               context.read<SfxService>().click();
                               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GamePage()));
                             },
                           ),
                         ),
+                        if (state.activeRun != null)
+                          TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => GamePage(savedRun: state.activeRun))), child: const Text('Lanjutkan')),
                         const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,

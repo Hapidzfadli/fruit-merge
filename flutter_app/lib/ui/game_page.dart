@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'dart:async';
+import '../models/run_snapshot.dart';
 import 'dart:ui' as ui;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +21,8 @@ import 'game_over_page.dart';
 /// plus the surrounding topbar/pause-overlay chrome that used to be plain
 /// DOM around the Matter.js canvas.
 class GamePage extends StatefulWidget {
-  const GamePage({super.key});
+  final RunSnapshot? savedRun;
+  const GamePage({super.key, this.savedRun});
 
   @override
   State<GamePage> createState() => _GamePageState();
@@ -39,6 +42,22 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool _paused = false;
   bool _ending = false;
   bool _leaving = false;
+  late String _runId;
+  Timer? _autosave;
+  String? _lastSave;
+
+  Future<void> _save() async {
+    if (_ending) return;
+    final snapshot = _game.snapshot(_runId, _appState.score);
+    final signature = snapshot.data.toString();
+    if (signature == _lastSave) return;
+    try {
+      await _appState.saveRun(snapshot);
+      _lastSave = signature;
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Penyimpanan gagal. Coba lagi.')));
+    }
+  }
   final List<_ScorePop> _pops = [];
   int _popId = 0;
   final GlobalKey _boardKey = GlobalKey();
@@ -49,6 +68,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _appState = context.read<AppState>();
     _sfx = context.read<SfxService>();
+    _runId = widget.savedRun?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
     _game = FruitMergeGame(
       onScore: (amount) => _appState.addScore(amount),
       onMerge: (level) {
@@ -67,13 +87,23 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       },
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _appState.resetScore();
+      if (widget.savedRun != null) {
+        _game.restore(widget.savedRun!);
+        _appState.addScore(widget.savedRun!.score);
+        _openPause();
+      }
+      _autosave = Timer.periodic(const Duration(seconds: 2), (_) { if (!_paused) _save(); });
+      _save();
+      if (_paused) return;
       if (_appState.music) _sfx.startMusic(); // app.js startGame(): if (state.music) startMusic()
     });
   }
 
   @override
   void dispose() {
+    _autosave?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _sfx.stopMusic();
     super.dispose();
@@ -111,7 +141,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     await _sfx.stopMusic(); // app.js gameOver(): stopMusic()
     final snapshot = await _captureBoardSnapshot();
     final score = _appState.score;
-    final earned = _appState.recordGameOver();
+    final earned = _appState.recordGameOver(runId: _runId);
     if (!mounted) return;
     final again = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => GameOverPage(score: score, earned: earned, boardSnapshot: snapshot)),
@@ -119,6 +149,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     if (!mounted) return;
     if (again == true) {
       _ending = false;
+      _runId = DateTime.now().microsecondsSinceEpoch.toString();
       _appState.resetScore();
       _game.resetBoard();
       _game.resumeEngine();
@@ -136,6 +167,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _sfx.click();
     setState(() => _paused = true);
     _game.pauseEngine();
+    _save();
     _sfx.stopMusic(); // app.js pauseGame(): stopMusic()
     final action = await showDialog<String>(
       context: context,
@@ -165,6 +197,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     );
     if (!mounted) return;
     if (action == 'home') {
+      await _save();
+      if (!mounted) return;
       setState(() => _leaving = true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.of(context).pop();
@@ -172,8 +206,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       return;
     }
     if (action == 'restart') {
+      _runId = DateTime.now().microsecondsSinceEpoch.toString();
       _appState.resetScore();
       _game.resetBoard();
+      await _save();
+      if (!mounted) return;
     }
     setState(() => _paused = false);
     if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {

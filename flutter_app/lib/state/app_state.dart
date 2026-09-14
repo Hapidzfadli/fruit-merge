@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/skin_data.dart';
+import '../models/run_snapshot.dart';
 
 /// Port of the `state` object + loadSave()/persist() from app.js:36-77.
 ///
@@ -23,6 +24,16 @@ class AppState extends ChangeNotifier {
   bool music = true;
   bool sfx = true;
   bool vibration = true;
+  RunSnapshot? activeRun;
+  List<String> completedRuns = [];
+  Future<void> _writes = Future.value();
+
+  Future<void> saveRun(RunSnapshot snapshot) {
+    if (completedRuns.contains(snapshot.id)) return Future.value();
+    activeRun = snapshot;
+    notifyListeners();
+    return persist();
+  }
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -44,15 +55,17 @@ class AppState extends ChangeNotifier {
       music = data['music'] != false;
       sfx = data['sfx'] != false;
       vibration = data['vibration'] != false;
+      activeRun = RunSnapshot.parse(data['activeRun']);
+      completedRuns = (data['completedRuns'] as List? ?? []).whereType<String>().toList();
+      if (activeRun != null && completedRuns.contains(activeRun!.id)) activeRun = null;
       notifyListeners();
     } catch (_) {
       // corrupt save data — keep defaults, same fallback behavior as loadSave()
     }
   }
 
-  Future<void> persist() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_saveKey, jsonEncode({
+  Future<void> persist() {
+    final encoded = jsonEncode({
       'highScore': highScore,
       'coins': coins,
       'equippedSkin': equippedSkin,
@@ -60,7 +73,15 @@ class AppState extends ChangeNotifier {
       'music': music,
       'sfx': sfx,
       'vibration': vibration,
-    }));
+      'activeRun': activeRun?.data,
+      'completedRuns': completedRuns,
+    });
+    final write = _writes.then((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      if (!await prefs.setString(_saveKey, encoded)) throw StateError('Save failed');
+    });
+    _writes = write.catchError((Object _) {});
+    return write;
   }
 
   void addScore(int amount) {
@@ -76,7 +97,10 @@ class AppState extends ChangeNotifier {
   /// Port of gameOver() coin/highscore bookkeeping (app.js:654-667), minus
   /// the SFX/vibration/navigation side effects which live in the UI layer.
   /// Returns the coins earned this run.
-  int recordGameOver() {
+  int recordGameOver({String? runId}) {
+    if (runId != null && completedRuns.contains(runId)) return 0;
+    if (runId != null) completedRuns.add(runId);
+    activeRun = null;
     if (score > highScore) highScore = score;
     final earned = score ~/ 10;
     coins += earned;

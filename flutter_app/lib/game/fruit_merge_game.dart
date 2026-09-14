@@ -8,6 +8,7 @@ import '../models/constants.dart';
 import '../models/fruit_data.dart';
 import 'fruit_body.dart';
 import 'fruit_sprites.dart';
+import '../models/run_snapshot.dart';
 
 /// Custom pure-Dart 2D physics + rendering for the merge board. Replaces
 /// Matter.js (app.js:496-568,570-631) — flame_forge2d/Box2D was dropped
@@ -55,6 +56,37 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   int currentIndex = _randomDropIndex();
   final ValueNotifier<int> nextIndexNotifier = ValueNotifier(_randomDropIndex());
   double dropX = pw / 2;
+  RunSnapshot snapshot(String id, int score) => RunSnapshot({
+    'version': 1, 'id': id, 'score': score, 'clock': _clock,
+    'current': currentIndex, 'next': nextIndexNotifier.value, 'dropX': dropX,
+    'cooldown': (dropCooldownMs - (_clock * 1000 - _lastDropAtMs)).clamp(0, dropCooldownMs),
+    'fruits': fruits.where((f) => !f.dead).map((f) => {
+      'index': f.index, 'x': f.position.x, 'y': f.position.y,
+      'vx': f.velocity.x, 'vy': f.velocity.y, 'angle': f.angle,
+      'angular': f.angularVelocity, 'age': _clock - f.spawnAt,
+      'over': f.overMs, 'flash': f.flash,
+    }).toList(),
+  });
+
+  void restore(RunSnapshot snapshot) {
+    final d = snapshot.data;
+    resetBoard();
+    _clock = (d['clock'] as num).toDouble();
+    currentIndex = d['current'] as int;
+    nextIndexNotifier.value = d['next'] as int;
+    dropX = (d['dropX'] as num).toDouble().clamp(pw * .08, pw * .92);
+    _lastDropAtMs = _clock * 1000 - dropCooldownMs + (d['cooldown'] as num);
+    for (final f in d['fruits'] as List) {
+      fruits.add(FruitBody(position: Vector2((f['x'] as num).toDouble(), (f['y'] as num).toDouble()),
+        index: f['index'] as int, spawnAt: _clock - (f['age'] as num),
+        velocity: Vector2((f['vx'] as num).toDouble(), (f['vy'] as num).toDouble()),
+        angularVelocity: (f['angular'] as num).toDouble())
+        ..angle = (f['angle'] as num).toDouble()
+        ..overMs = (f['over'] as num).toDouble()
+        ..flash = (f['flash'] as num).toDouble());
+    }
+    pauseEngine();
+  }
 
   static int _randomDropIndex() => math.Random().nextInt(5);
 
