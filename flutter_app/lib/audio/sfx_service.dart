@@ -18,6 +18,12 @@ class SfxService {
   int _poolIndex = 0;
 
   AudioPlayer? _musicPlayer;
+  Future<void> _musicQueue = Future.value();
+
+  Future<void> _enqueue(Future<void> Function() action) {
+    _musicQueue = _musicQueue.then((_) => action()).catchError((Object _) {});
+    return _musicQueue;
+  }
 
   SfxService(this.appState) {
     for (final p in _pool) {
@@ -58,23 +64,22 @@ class SfxService {
   /// Port of startMusic() (audio.js:44-69). The original loops 4 notes via
   /// setInterval; here the whole loop is one asset played with
   /// ReleaseMode.loop, which is equivalent and cheaper.
-  Future<void> startMusic() async {
+  Future<void> startMusic() => _enqueue(() async {
     if (!appState.music) return;
     if (_musicPlayer != null) return; // matches "if (musicNodes) return;" no-op guard
     final player = AudioPlayer(playerId: 'music');
+    _musicPlayer = player;
     await player.setReleaseMode(ReleaseMode.loop);
     await player.setVolume(1.0); // gain is already baked into loop.wav's envelope
     await player.play(AssetSource('music/loop.wav'));
-    _musicPlayer = player;
-  }
+  });
 
-  Future<void> stopMusic() async {
+  Future<void> stopMusic() => _enqueue(() async {
     final player = _musicPlayer;
     if (player == null) return;
     _musicPlayer = null;
-    await player.stop();
-    await player.dispose();
-  }
+    try { await player.stop(); } finally { await player.dispose(); }
+  });
 
   Future<void> dispose() async {
     await stopMusic();

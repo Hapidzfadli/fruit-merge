@@ -37,6 +37,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   late final AppState _appState;
   late final SfxService _sfx;
   bool _paused = false;
+  bool _ending = false;
+  bool _leaving = false;
   final List<_ScorePop> _pops = [];
   int _popId = 0;
   final GlobalKey _boardKey = GlobalKey();
@@ -102,6 +104,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   Future<void> _handleGameOver() async {
+    if (_ending || !mounted) return;
+    _ending = true;
     _sfx.gameOver();
     doVibrate(_appState, 60);
     await _sfx.stopMusic(); // app.js gameOver(): stopMusic()
@@ -114,52 +118,79 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     );
     if (!mounted) return;
     if (again == true) {
+      _ending = false;
       _appState.resetScore();
       _game.resetBoard();
       _game.resumeEngine();
       if (_appState.music) _sfx.startMusic();
     } else {
-      Navigator.of(context).pop();
+      setState(() => _leaving = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).pop();
+      });
     }
   }
 
-  void _openPause() {
+  Future<void> _openPause() async {
+    if (!mounted || _paused || _ending || _leaving) return;
     _sfx.click();
     setState(() => _paused = true);
     _game.pauseEngine();
     _sfx.stopMusic(); // app.js pauseGame(): stopMusic()
-    showDialog<void>(
+    final action = await showDialog<String>(
       context: context,
+      barrierDismissible: false,
       barrierColor: const Color(0x801E140F),
       builder: (_) => _PauseDialog(
         appState: _appState,
         sfx: _sfx,
         onResume: () {
-          Navigator.of(context).pop();
-          setState(() => _paused = false);
-          _game.resumeEngine();
-          if (_appState.music) _sfx.startMusic();
+          Navigator.of(context).pop('resume');
         },
-        onRestart: () {
-          Navigator.of(context).pop();
-          setState(() => _paused = false);
-          _appState.resetScore();
-          _game.resetBoard();
-          _game.resumeEngine();
-          if (_appState.music) _sfx.startMusic();
+        onRestart: () async {
+          final confirmed = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+            title: const Text('Mulai ulang?'),
+            content: const Text('Pertandingan ini akan diganti dengan permainan baru.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Batal')),
+              TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Mulai ulang')),
+            ],
+          ));
+          if (confirmed == true && mounted) Navigator.of(context).pop('restart');
         },
         onHome: () {
-          Navigator.of(context).pop();
-          Navigator.of(context).pop();
+          Navigator.of(context).pop('home');
         },
       ),
     );
+    if (!mounted) return;
+    if (action == 'home') {
+      setState(() => _leaving = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).pop();
+      });
+      return;
+    }
+    if (action == 'restart') {
+      _appState.resetScore();
+      _game.resetBoard();
+    }
+    setState(() => _paused = false);
+    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      _openPause();
+      return;
+    }
+    _game.resumeEngine();
+    if (_appState.music) _sfx.startMusic();
   }
 
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
-    return Scaffold(
+    return PopScope(
+      canPop: _leaving,
+      onPopInvokedWithResult: (didPop, result) { if (!didPop) _openPause(); },
+      child: Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: kScreenGradient),
         child: SafeArea(
@@ -247,7 +278,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           ),
         ),
       ),
-    );
+    ));
   }
 }
 
