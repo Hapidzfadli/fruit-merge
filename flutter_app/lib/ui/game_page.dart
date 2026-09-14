@@ -72,6 +72,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _game = FruitMergeGame(
       onScore: (amount) => _appState.addScore(amount),
       onMerge: (level) {
+        _appState.recordMerge(level);
         _sfx.merge(level);
         doVibrate(_appState, 15);
       },

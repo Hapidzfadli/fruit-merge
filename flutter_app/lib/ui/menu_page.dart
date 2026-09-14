@@ -8,6 +8,7 @@ import 'shop_page.dart';
 import 'game_page.dart';
 import '../state/app_state.dart';
 import 'ranking_page.dart';
+import 'collection_page.dart';
 
 /// Port of buildMenuScreen() (app.js:169-202).
 class MenuPage extends StatelessWidget {
@@ -29,7 +30,7 @@ class MenuPage extends StatelessWidget {
 
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 50, 20, 40),
-                child: Column(
+                child: SingleChildScrollView(child: SizedBox(width: double.infinity, child: Column(
                   children: [
                     // Title — app.js:180-184
                     Column(
@@ -47,14 +48,14 @@ class MenuPage extends StatelessWidget {
                       ],
                     ),
 
-                    const Spacer(),
+                    const SizedBox(height: 28),
 
                     // Mascot — the bear cub app.js drew out of stacked divs
                     // (buildMascot, app.js:151-166), now real artwork. Sized by
                     // height because the art is taller than it is wide.
                     Image.asset('assets/branding/mascot.png', height: 140),
 
-                    const Spacer(),
+                    const SizedBox(height: 28),
 
                     // Actions — app.js:188-198
                     Column(
@@ -82,6 +83,7 @@ class MenuPage extends StatelessWidget {
                         if (state.activeRun != null)
                           TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => GamePage(savedRun: state.activeRun))), child: const Text('Lanjutkan')),
                         const SizedBox(height: 20),
+                        TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CollectionPage())), child: const Text('Koleksi & Pencapaian')),
                         Wrap(
                           alignment: WrapAlignment.center,
                           spacing: 18,
@@ -116,7 +118,7 @@ class MenuPage extends StatelessWidget {
                       ],
                     ),
                   ],
-                ),
+                ))),
               ),
             ],
           ),

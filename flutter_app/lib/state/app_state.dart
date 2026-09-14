@@ -17,8 +17,8 @@ class AppState extends ChangeNotifier {
   static const _saveKey = 'fruitMergeAdventure.save';
 
   int score = 0;
-  int highScore = 1280;
-  int coins = 340;
+  int highScore = 0;
+  int coins = 0;
   String equippedSkin = kDefaultSkinId;
   List<String> ownedSkins = [kDefaultSkinId];
   bool music = true;
@@ -27,6 +27,24 @@ class AppState extends ChangeNotifier {
   RunSnapshot? activeRun;
   List<String> completedRuns = [];
   List<Map<String, dynamic>> ranking = [];
+  Set<int> collection = {};
+  Set<String> achievements = {};
+  static const achievementRewards = {'merge': 20, 'score1000': 50, 'watermelon': 100};
+  static const achievementNames = {'merge': 'Merge pertama', 'score1000': '1.000 poin dalam satu permainan', 'watermelon': 'Semangka pertama'};
+
+  void _award(String id) {
+    if (achievements.add(id)) coins += achievementRewards[id]!;
+  }
+
+  void recordMerge(int level) {
+    if (level < 1 || level > 9) return;
+    collection.add(level);
+    _award('merge');
+    if (score >= 1000) _award('score1000');
+    if (level == 9) _award('watermelon');
+    persist();
+    notifyListeners();
+  }
   Future<void> _writes = Future.value();
 
   Future<void> saveRun(RunSnapshot snapshot) {
@@ -43,7 +61,7 @@ class AppState extends ChangeNotifier {
     try {
       final data = jsonDecode(raw) as Map<String, dynamic>;
       highScore = (data['highScore'] as num?)?.toInt() ?? 0;
-      coins = data['coins'] != null ? (data['coins'] as num).toInt() : 340;
+      coins = data['coins'] != null ? (data['coins'] as num).toInt() : 0;
       // Saves written before the artwork skins landed name skins that no
       // longer exist ('classic', 'crystal', ...), so anything unrecognised
       // is dropped rather than leaving the player with a missing skin.
@@ -56,6 +74,8 @@ class AppState extends ChangeNotifier {
       music = data['music'] != false;
       sfx = data['sfx'] != false;
       vibration = data['vibration'] != false;
+      collection = (data['collection'] as List? ?? []).whereType<int>().where((i) => i >= 1 && i <= 9).toSet();
+      achievements = (data['achievements'] as List? ?? []).whereType<String>().where(achievementRewards.containsKey).toSet();
       activeRun = RunSnapshot.parse(data['activeRun']);
       completedRuns = (data['completedRuns'] as List? ?? []).whereType<String>().toList();
       ranking = (data['ranking'] as List? ?? []).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).where((e) =>
@@ -80,6 +100,7 @@ class AppState extends ChangeNotifier {
       'activeRun': activeRun?.data,
       'completedRuns': completedRuns,
       'ranking': ranking,
+      'collection': collection.toList(), 'achievements': achievements.toList(),
     });
     final write = _writes.then((_) async {
       final prefs = await SharedPreferences.getInstance();
@@ -122,7 +143,10 @@ class AppState extends ChangeNotifier {
     return earned;
   }
 
-  bool buySkin(String skinId, int price) {
+  bool buySkin(String skinId) {
+    final skins = kSkins.where((skin) => skin.id == skinId);
+    if (skins.isEmpty) return false;
+    final price = skins.first.price;
     if (ownedSkins.contains(skinId) || coins < price) return false;
     coins -= price;
     ownedSkins.add(skinId);

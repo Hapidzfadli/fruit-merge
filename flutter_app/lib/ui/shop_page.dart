@@ -177,7 +177,7 @@ class _ShopCardState extends State<_ShopCard> with SingleTickerProviderStateMixi
                     context.read<SfxService>().click();
                     _playShake();
                   } else {
-                    appState.buySkin(sk.id, sk.price);
+                    appState.buySkin(sk.id);
                     // buySkin equips what it just sold, so the artwork has to
                     // follow it.
                     FruitSprites.use(sk.id);
