@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -)",
+      "Bash(flutter run *)",
+      "Bash(python tool/prepare_logo.py)",
+      "Bash(dart run *)"
+    ]
+  }
+}

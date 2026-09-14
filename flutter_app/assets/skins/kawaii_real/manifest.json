@@ -1,0 +1,105 @@
+{
+  "skin": "kawaii_real",
+  "fruits": [
+    {
+      "index": 0,
+      "name": "ceri",
+      "file": "00_ceri.png",
+      "width": 139,
+      "height": 139,
+      "bodyCx": 0.50194,
+      "bodyCy": 0.53699,
+      "bodyScale": 0.92086
+    },
+    {
+      "index": 1,
+      "name": "stroberi",
+      "file": "01_stroberi.png",
+      "width": 160,
+      "height": 176,
+      "bodyCx": 0.50132,
+      "bodyCy": 0.53466,
+      "bodyScale": 1.0
+    },
+    {
+      "index": 2,
+      "name": "anggur",
+      "file": "02_anggur.png",
+      "width": 193,
+      "height": 194,
+      "bodyCx": 0.49857,
+      "bodyCy": 0.50024,
+      "bodyScale": 0.99482
+    },
+    {
+      "index": 3,
+      "name": "jeruk",
+      "file": "03_jeruk.png",
+      "width": 225,
+      "height": 225,
+      "bodyCx": 0.49978,
+      "bodyCy": 0.49915,
+      "bodyScale": 0.99556
+    },
+    {
+      "index": 4,
+      "name": "apel",
+      "file": "04_apel.png",
+      "width": 277,
+      "height": 277,
+      "bodyCx": 0.50375,
+      "bodyCy": 0.53893,
+      "bodyScale": 0.92419
+    },
+    {
+      "index": 5,
+      "name": "pir",
+      "file": "05_pir.png",
+      "width": 321,
+      "height": 365,
+      "bodyCx": 0.49991,
+      "bodyCy": 0.55303,
+      "bodyScale": 0.99688
+    },
+    {
+      "index": 6,
+      "name": "persik",
+      "file": "06_persik.png",
+      "width": 364,
+      "height": 358,
+      "bodyCx": 0.49778,
+      "bodyCy": 0.49279,
+      "bodyScale": 0.96703
+    },
+    {
+      "index": 7,
+      "name": "nanas",
+      "file": "07_nanas.png",
+      "width": 389,
+      "height": 531,
+      "bodyCx": 0.50058,
+      "bodyCy": 0.63392,
+      "bodyScale": 0.98715
+    },
+    {
+      "index": 8,
+      "name": "melon",
+      "file": "08_melon.png",
+      "width": 450,
+      "height": 453,
+      "bodyCx": 0.49947,
+      "bodyCy": 0.50008,
+      "bodyScale": 0.99556
+    },
+    {
+      "index": 9,
+      "name": "semangka",
+      "file": "09_semangka.png",
+      "width": 515,
+      "height": 513,
+      "bodyCx": 0.49984,
+      "bodyCy": 0.50007,
+      "bodyScale": 0.99417
+    }
+  ]
+}
