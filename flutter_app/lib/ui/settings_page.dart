@@ -28,29 +28,31 @@ class SettingsPage extends StatelessWidget {
                     Navigator.of(context).pop();
                   }),
                   const SizedBox(width: 14),
-                  const Text('Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text)),
+                  const Expanded(child: Text('Pengaturan', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text))),
                 ],
               ),
               const SizedBox(height: 20),
               // Ordering intentionally mirrors app.js:444-446: Music/Vibration
               // click-then-toggle, but SFX toggles BEFORE clicking — so
               // muting SFX plays no confirmation click, unmuting does.
-              _SettingsRow(label: 'Music', value: appState.music, onToggle: () {
+              _SettingsRow(label: 'Musik', value: appState.music, onToggle: () {
                 sfx.click();
                 appState.toggleMusic();
               }),
-              _SettingsRow(label: 'SFX', value: appState.sfx, onToggle: () {
+              _SettingsRow(label: 'Efek suara', value: appState.sfx, onToggle: () {
                 appState.toggleSfx();
                 sfx.click();
               }),
-              _SettingsRow(label: 'Vibration', value: appState.vibration, onToggle: () {
+              _SettingsRow(label: 'Getaran', value: appState.vibration, onToggle: () {
                 sfx.click();
                 appState.toggleVibration();
               }),
               const SizedBox(height: 26),
-              SecondaryButton(label: 'Privacy Policy', onPressed: sfx.click),
-              const SizedBox(height: 12),
-              SecondaryButton(label: 'Rate Us', onPressed: sfx.click),
+              SecondaryButton(label: 'Data & Penyimpanan', onPressed: () => showDialog<void>(context: context, builder: (c) => AlertDialog(
+                title: const Text('Data & Penyimpanan'),
+                content: const SingleChildScrollView(child: Text('Skor, koin, skin, pengaturan, dan pertandingan tersimpan di perangkat ini. Game ini tidak menyediakan akun atau sinkronisasi server. Menghapus data aplikasi dapat menghapus progres. Pemulihan setelah penutupan paksa menggunakan simpanan otomatis terakhir.')),
+                actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('Tutup'))],
+              ))),
             ],
           ),
         ),

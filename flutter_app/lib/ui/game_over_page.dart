@@ -32,19 +32,19 @@ class GameOverPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(24, 60, 24, 16),
             child: Column(
               children: [
-                const Text('Game Over!', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.coral)),
+                const Text('Permainan Selesai', textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.coral)),
                 const SizedBox(height: 22),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _StatCard(label: 'Score', value: '$score'),
+                    Expanded(child: _StatCard(label: 'Skor', value: '$score')),
                     const SizedBox(width: 14),
-                    _StatCard(label: 'Best', value: '${appState.highScore}'),
+                    Expanded(child: _StatCard(label: 'Rekor', value: '${appState.highScore}')),
                   ],
                 ),
                 if (earned > 0) ...[
                   const SizedBox(height: 10),
-                  Text('+$earned coins earned', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF8A6D1A))),
+                  Text('+$earned koin diperoleh', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF8A6D1A))),
                 ],
                 const SizedBox(height: 18),
                 Expanded(child: _BoardSnapshot(bytes: boardSnapshot)),
@@ -52,8 +52,7 @@ class GameOverPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 150,
+                    Expanded(
                       child: PrimaryButton(
                         label: 'Main Lagi',
                         fontSize: 15,
@@ -65,31 +64,18 @@ class GameOverPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    SizedBox(
-                      width: 130,
+                    Expanded(
                       child: SecondaryButton(
-                        label: 'Home',
+                        label: 'Beranda',
                         onPressed: () {
                           context.read<SfxService>().click();
-                          Navigator.of(context).popUntil((r) => r.isFirst);
+                          Navigator.of(context).pop(false);
                         },
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  height: 50,
-                  constraints: const BoxConstraints(maxWidth: 280),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFFD8CDBB), width: 2, style: BorderStyle.solid),
-                    borderRadius: BorderRadius.circular(12),
-                    color: const Color(0xFFF0ECE3),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Text('Ad Banner · 320×50', style: TextStyle(fontSize: 11, color: Color(0xFFB3A288))),
-                ),
               ],
             ),
           ),

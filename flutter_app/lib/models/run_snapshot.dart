@@ -22,7 +22,7 @@ class RunSnapshot {
         if (i < 0 || i > 4) return null;
       }
       if (number(s.data['clock']) < 0 || number(s.data['cooldown']) < 0 ||
-          number(s.data['cooldown']) > 320) return null;
+          number(s.data['cooldown']) > 320) { return null; }
       number(s.data['dropX']);
       final fruits = s.data['fruits'] as List;
       if (fruits.length > 1000) return null;

@@ -7,6 +7,7 @@ import 'settings_page.dart';
 import 'shop_page.dart';
 import 'game_page.dart';
 import '../state/app_state.dart';
+import 'ranking_page.dart';
 
 /// Port of buildMenuScreen() (app.js:169-202).
 class MenuPage extends StatelessWidget {
@@ -61,7 +62,7 @@ class MenuPage extends StatelessWidget {
                         SizedBox(
                           width: 220,
                           child: PrimaryButton(
-                            label: 'PLAY',
+                            label: 'Main Baru',
                             fontSize: 22,
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             onPressed: () async {
@@ -81,27 +82,30 @@ class MenuPage extends StatelessWidget {
                         if (state.activeRun != null)
                           TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => GamePage(savedRun: state.activeRun))), child: const Text('Lanjutkan')),
                         const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 18,
+                          runSpacing: 12,
                           children: [
                             _MenuLink(
                               icon: Icons.settings_rounded,
-                              label: 'Settings',
+                              label: 'Pengaturan',
                               onTap: () {
                                 context.read<SfxService>().click();
                                 Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
                               },
                             ),
-                            const SizedBox(width: 26),
                             _MenuLink(
                               icon: Icons.leaderboard_rounded,
                               label: 'Ranking',
-                              onTap: () => context.read<SfxService>().click(), // no Ranking screen upstream either — app.js:195
+                              onTap: () {
+                                context.read<SfxService>().click();
+                                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RankingPage()));
+                              },
                             ),
-                            const SizedBox(width: 26),
                             _MenuLink(
                               icon: Icons.storefront_rounded,
-                              label: 'Shop',
+                              label: 'Toko',
                               onTap: () {
                                 context.read<SfxService>().click();
                                 Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ShopPage()));

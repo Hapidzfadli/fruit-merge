@@ -141,7 +141,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     await _sfx.stopMusic(); // app.js gameOver(): stopMusic()
     final snapshot = await _captureBoardSnapshot();
     final score = _appState.score;
-    final earned = _appState.recordGameOver(runId: _runId);
+    final earned = _appState.recordGameOver(runId: _runId, highestLevel: _game.fruits.fold<int>(0, (level, fruit) => fruit.index > level ? fruit.index : level));
     if (!mounted) return;
     final again = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => GameOverPage(score: score, earned: earned, boardSnapshot: snapshot)),
@@ -248,7 +248,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                         child: const SizedBox(width: 44, height: 44, child: Icon(Icons.pause_rounded, color: AppColors.text)),
                       ),
                     ),
-                    _Pill(label: 'Score', value: '${appState.score}'),
+                    Expanded(child: _Pill(label: 'Skor', value: '${appState.score}')),
                     ValueListenableBuilder<int>(
                       valueListenable: _game.nextIndexNotifier,
                       builder: (context, nextIndex, _) => _NextPreview(index: nextIndex),
@@ -379,7 +379,7 @@ class _NextPreview extends StatelessWidget {
       decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.75), borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          const Text('NEXT', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppColors.label)),
+          const Text('BERIKUT', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppColors.label)),
           const SizedBox(height: 4),
           // Extra height below the label so a stem or crown, which the art
           // draws above the fruit's body box, still has room.
@@ -420,19 +420,19 @@ class _PauseDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Paused', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.text)),
+            const Text('Jeda', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.text)),
             const SizedBox(height: 14),
-            PrimaryButton(label: 'Resume', onPressed: () {
+            PrimaryButton(label: 'Lanjut', onPressed: () {
               sfx.click();
               onResume();
             }),
             const SizedBox(height: 12),
-            SecondaryButton(label: 'Restart', onPressed: () {
+            SecondaryButton(label: 'Ulangi', onPressed: () {
               sfx.click();
               onRestart();
             }),
             const SizedBox(height: 12),
-            SecondaryButton(label: 'Home', onPressed: () {
+            SecondaryButton(label: 'Beranda', onPressed: () {
               sfx.click();
               onHome();
             }),
@@ -442,7 +442,7 @@ class _PauseDialog extends StatelessWidget {
               builder: (context, _) => Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Sound', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.muted)),
+                  const Text('Musik', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.muted)),
                   ToggleSwitch(value: appState.music, onToggle: () {
                     sfx.click();
                     appState.toggleMusic();

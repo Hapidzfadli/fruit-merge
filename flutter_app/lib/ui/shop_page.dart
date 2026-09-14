@@ -43,7 +43,7 @@ class _ShopPageState extends State<ShopPage> {
                   }),
                   const SizedBox(width: 14),
                   const Expanded(
-                    child: Text('Shop', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text)),
+                    child: Text('Toko', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text)),
                   ),
                   _CoinPill(coins: appState.coins),
                 ],
@@ -161,7 +161,7 @@ class _ShopCardState extends State<_ShopCard> with SingleTickerProviderStateMixi
             Text(sk.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.text)),
             const SizedBox(height: 8),
             if (isEquipped)
-              _Badge(text: 'Equipped', bg: const Color(0xFFDFF3D8), fg: const Color(0xFF4C9A3A))
+              _Badge(text: 'Dipakai', bg: const Color(0xFFDFF3D8), fg: const Color(0xFF4C9A3A))
             else if (owned)
               _EquipButton(onTap: () {
                 context.read<SfxService>().click();
@@ -247,7 +247,7 @@ class _EquipButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border.all(color: const Color(0xFFFFD3C4), width: 2)),
-          child: const Text('Equip', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.coral)),
+          child: const Text('Pakai', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.coral)),
         ),
       ),
     );

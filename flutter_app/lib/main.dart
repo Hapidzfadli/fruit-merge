@@ -19,7 +19,7 @@ class FruitMergeApp extends StatefulWidget {
 class _FruitMergeAppState extends State<FruitMergeApp> {
   final AppState _appState = AppState();
   late final SfxService _sfx;
-  late final Future<void> _loadFuture;
+  late Future<void> _loadFuture;
 
   @override
   void initState() {
@@ -56,6 +56,12 @@ class _FruitMergeAppState extends State<FruitMergeApp> {
         home: FutureBuilder<void>(
           future: _loadFuture,
           builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Scaffold(body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Text('Game belum berhasil dimuat.'),
+                TextButton(onPressed: () => setState(() => _loadFuture = _boot()), child: const Text('Coba lagi')),
+              ])));
+            }
             if (snapshot.connectionState != ConnectionState.done) {
               // Deliberately not an animated spinner: start-up is brief, and
               // a never-ending animation would keep the widget tree from

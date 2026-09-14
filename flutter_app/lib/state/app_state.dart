@@ -26,6 +26,7 @@ class AppState extends ChangeNotifier {
   bool vibration = true;
   RunSnapshot? activeRun;
   List<String> completedRuns = [];
+  List<Map<String, dynamic>> ranking = [];
   Future<void> _writes = Future.value();
 
   Future<void> saveRun(RunSnapshot snapshot) {
@@ -57,6 +58,9 @@ class AppState extends ChangeNotifier {
       vibration = data['vibration'] != false;
       activeRun = RunSnapshot.parse(data['activeRun']);
       completedRuns = (data['completedRuns'] as List? ?? []).whereType<String>().toList();
+      ranking = (data['ranking'] as List? ?? []).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).where((e) =>
+        e['score'] is int && e['level'] is int && (e['level'] as int) >= 0 && (e['level'] as int) < 10 &&
+        e['date'] is String && DateTime.tryParse(e['date'] as String) != null).take(10).toList();
       if (activeRun != null && completedRuns.contains(activeRun!.id)) activeRun = null;
       notifyListeners();
     } catch (_) {
@@ -75,6 +79,7 @@ class AppState extends ChangeNotifier {
       'vibration': vibration,
       'activeRun': activeRun?.data,
       'completedRuns': completedRuns,
+      'ranking': ranking,
     });
     final write = _writes.then((_) async {
       final prefs = await SharedPreferences.getInstance();
@@ -97,10 +102,18 @@ class AppState extends ChangeNotifier {
   /// Port of gameOver() coin/highscore bookkeeping (app.js:654-667), minus
   /// the SFX/vibration/navigation side effects which live in the UI layer.
   /// Returns the coins earned this run.
-  int recordGameOver({String? runId}) {
+  int recordGameOver({String? runId, int highestLevel = 0}) {
     if (runId != null && completedRuns.contains(runId)) return 0;
     if (runId != null) completedRuns.add(runId);
     activeRun = null;
+    ranking.add({'score': score, 'level': highestLevel, 'order': completedRuns.length, 'date': DateTime.now().toUtc().toIso8601String()});
+    ranking.sort((a, b) {
+      final scores = (b['score'] as int).compareTo(a['score'] as int);
+      if (scores != 0) return scores;
+      final dates = (b['date'] as String).compareTo(a['date'] as String);
+      return dates != 0 ? dates : ((b['order'] as int?) ?? 0).compareTo((a['order'] as int?) ?? 0);
+    });
+    ranking = ranking.take(10).toList();
     if (score > highScore) highScore = score;
     final earned = score ~/ 10;
     coins += earned;
