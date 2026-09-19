@@ -42,7 +42,7 @@ class GameOverPage extends StatelessWidget {
             child: Column(
               children: [
                 const Text(
-                  'Permainan Selesai',
+                  'Game Over',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 26,
@@ -55,7 +55,7 @@ class GameOverPage extends StatelessWidget {
                   const Padding(
                     padding: EdgeInsets.only(bottom: 12),
                     child: Text(
-                      'Rekor baru! 🏆',
+                      'New best score! 🏆',
                       style: TextStyle(
                         color: AppColors.coral,
                         fontWeight: FontWeight.bold,
@@ -66,12 +66,12 @@ class GameOverPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: _StatCard(label: 'Skor', value: '$score'),
+                      child: _StatCard(label: 'Score', value: '$score'),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: _StatCard(
-                        label: 'Rekor',
+                        label: 'Best',
                         value: '${appState.highScore}',
                       ),
                     ),
@@ -80,7 +80,7 @@ class GameOverPage extends StatelessWidget {
                 if (earned > 0) ...[
                   const SizedBox(height: 10),
                   Text(
-                    '+$earned koin diperoleh',
+                    '+$earned coins earned',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -96,7 +96,7 @@ class GameOverPage extends StatelessWidget {
                   children: [
                     Expanded(
                       child: PrimaryButton(
-                        label: 'Main Lagi',
+                        label: 'Play Again',
                         fontSize: 15,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         onPressed: () {
@@ -109,7 +109,7 @@ class GameOverPage extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: SecondaryButton(
-                        label: 'Beranda',
+                        label: 'Home',
                         onPressed: () {
                           context.read<SfxService>().click();
                           Navigator.of(context).pop(false);

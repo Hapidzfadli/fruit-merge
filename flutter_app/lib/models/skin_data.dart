@@ -30,11 +30,11 @@ const List<SkinData> kSkins = [
   // Splits the face off the fruit — ten plain bodies plus face_idle/face_x,
   // composited at draw time — so a fruit stuck above the danger line actually
   // changes expression instead of only fading.
-  SkinData(id: kDefaultSkinId, name: 'Permen Jelly', price: 0, layeredFace: true),
+  SkinData(id: kDefaultSkinId, name: 'Jelly Candy', price: 0, layeredFace: true),
   // The original artwork, with a cheerful face painted into every fruit.
   // Priced to match the first paid tier in app.js, which a player can afford
   // partway into their first few runs.
-  SkinData(id: 'kawaii_real', name: 'Kawaii Buah', price: 250),
+  SkinData(id: 'kawaii_real', name: 'Kawaii Fruits', price: 250),
 ];
 
 SkinData skinById(String id) => kSkins.firstWhere((s) => s.id == id, orElse: () => kSkins.first);

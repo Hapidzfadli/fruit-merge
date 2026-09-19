@@ -25,7 +25,7 @@ void main() {
     await tester.pumpWidget(const FruitMergeApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Main Baru'), findsOneWidget);
+    expect(find.text('New Game'), findsOneWidget);
     expect(find.textContaining('FRUIT MERGE'), findsOneWidget);
   });
 }

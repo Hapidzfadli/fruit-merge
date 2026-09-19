@@ -38,9 +38,9 @@ class AppState extends ChangeNotifier {
     'watermelon': 100,
   };
   static const achievementNames = {
-    'merge': 'Merge pertama',
-    'score1000': '1.000 poin dalam satu permainan',
-    'watermelon': 'Semangka pertama',
+    'merge': 'First merge',
+    'score1000': 'Score 1,000 points in one game',
+    'watermelon': 'First watermelon',
   };
 
   void _award(String id) {

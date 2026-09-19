@@ -10,13 +10,13 @@ class RankingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final entries = context.watch<AppState>().ranking;
     return Scaffold(
-      appBar: AppBar(title: const Text('Ranking Lokal')),
+      appBar: AppBar(title: const Text('Local Leaderboard')),
       body: entries.isEmpty
           ? const Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
                 child: Text(
-                  'Belum ada hasil. Selesaikan pertandingan pertamamu!',
+                  'No scores yet. Finish your first game!',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -28,7 +28,7 @@ class RankingPage extends StatelessWidget {
                 final date = DateTime.parse(e['date'] as String).toLocal();
                 return ListTile(
                   leading: Text('${i + 1}'),
-                  title: Text('${e['score']} poin'),
+                  title: Text('${e['score']} points'),
                   subtitle: Text(
                     '${date.day}/${date.month}/${date.year} • ${kFruits[e['level'] as int].name}',
                   ),

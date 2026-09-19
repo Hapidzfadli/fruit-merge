@@ -66,10 +66,10 @@ class _FruitMergeAppState extends State<FruitMergeApp> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('Game belum berhasil dimuat.'),
+                      const Text('Could not load the game.'),
                       TextButton(
                         onPressed: () => setState(() => _loadFuture = _boot()),
-                        child: const Text('Coba lagi'),
+                        child: const Text('Try Again'),
                       ),
                     ],
                   ),

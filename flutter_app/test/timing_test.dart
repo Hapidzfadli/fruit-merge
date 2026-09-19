@@ -41,11 +41,11 @@ void main() {
   });
   test('cooldown and combo status, watermelon celebration persists', () {
     final g = make()..dropFruit();
-    expect(g.statusText.value, contains('Tunggu'));
+    expect(g.statusText.value, contains('Please wait'));
     for (var i = 0; i < 20; i++) {
       g.update(1 / 60);
     }
-    expect(g.statusText.value, contains('Siap'));
+    expect(g.statusText.value, contains('Ready'));
     for (var i = 0; i < 3; i++) {
       g.fruits.clear();
       g.fruits.addAll([
@@ -61,7 +61,7 @@ void main() {
       FruitBody(position: Vector2(150, 300), index: 8, spawnAt: 0),
     ]);
     g.update(1 / 60);
-    expect(g.statusText.value, contains('Semangka pertama'));
+    expect(g.statusText.value, contains('First watermelon'));
     final restored = make()..restore(g.snapshot('t', 0));
     expect(restored.madeWatermelon, true);
   });

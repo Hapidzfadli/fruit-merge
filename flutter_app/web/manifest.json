@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#FFF6EA",
     "theme_color": "#FF6B4A",
-    "description": "Gabungkan buah, raih skor tertinggi.",
+    "description": "Merge fruits and beat your best score.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

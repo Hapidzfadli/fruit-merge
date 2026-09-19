@@ -48,7 +48,7 @@ class _ShopPageState extends State<ShopPage> {
                   const SizedBox(width: 14),
                   const Expanded(
                     child: Text(
-                      'Toko',
+                      'Shop',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -205,7 +205,7 @@ class _ShopCardState extends State<_ShopCard>
             const SizedBox(height: 8),
             if (isEquipped)
               _Badge(
-                text: 'Dipakai',
+                text: 'Equipped',
                 bg: const Color(0xFFDFF3D8),
                 fg: const Color(0xFF4C9A3A),
               )
@@ -317,7 +317,7 @@ class _EquipButton extends StatelessWidget {
             border: Border.all(color: const Color(0xFFFFD3C4), width: 2),
           ),
           child: const Text(
-            'Pakai',
+            'Equip',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,

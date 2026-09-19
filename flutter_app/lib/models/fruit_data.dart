@@ -15,14 +15,14 @@ class FruitData {
 }
 
 const List<FruitData> kFruits = [
-  FruitData(name: 'Ceri', size: 28),
-  FruitData(name: 'Stroberi', size: 36),
-  FruitData(name: 'Anggur', size: 44),
-  FruitData(name: 'Jeruk', size: 54),
-  FruitData(name: 'Apel', size: 64),
-  FruitData(name: 'Pir', size: 74),
-  FruitData(name: 'Persik', size: 84),
-  FruitData(name: 'Nanas', size: 96),
+  FruitData(name: 'Cherry', size: 28),
+  FruitData(name: 'Strawberry', size: 36),
+  FruitData(name: 'Grape', size: 44),
+  FruitData(name: 'Orange', size: 54),
+  FruitData(name: 'Apple', size: 64),
+  FruitData(name: 'Pear', size: 74),
+  FruitData(name: 'Peach', size: 84),
+  FruitData(name: 'Pineapple', size: 96),
   FruitData(name: 'Melon', size: 108),
-  FruitData(name: 'Semangka', size: 122),
+  FruitData(name: 'Watermelon', size: 122),
 ];

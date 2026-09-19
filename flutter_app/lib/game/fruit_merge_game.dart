@@ -61,7 +61,7 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   late final ValueNotifier<int> nextIndexNotifier;
   double _accumulator = 0;
   double dropX = pw / 2;
-  final ValueNotifier<String> statusText = ValueNotifier('Siap • ketuk papan');
+  final ValueNotifier<String> statusText = ValueNotifier('Ready • tap the board');
   bool madeWatermelon = false;
   int _combo = 0;
   double _lastMerge = -100;
@@ -72,14 +72,14 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
         .fold<double>(0, (value, f) => math.max(value, f.overMs));
     final cooling = _clock * 1000 - _lastDropAtMs < dropCooldownMs;
     statusText.value = danger > 0
-        ? 'Bahaya • ${((overLimitMs - danger) / 1000).clamp(0, 2.9).toStringAsFixed(1)} dtk'
+        ? 'Danger • ${((overLimitMs - danger) / 1000).clamp(0, 2.9).toStringAsFixed(1)} s'
         : _clock < _celebrateUntil
-        ? 'Semangka pertama! 🍉'
+        ? 'First watermelon! 🍉'
         : _combo >= 3 && _clock - _lastMerge <= 1
         ? 'Combo ×$_combo!'
         : cooling
-        ? 'Tunggu sebentar…'
-        : 'Siap • ketuk papan';
+        ? 'Please wait…'
+        : 'Ready • tap the board';
   }
 
   RunSnapshot snapshot(String id, int score) => RunSnapshot({
@@ -492,7 +492,7 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     _combo = 0;
     _lastMerge = -100;
     _celebrateUntil = -1;
-    statusText.value = 'Siap • ketuk papan';
+    statusText.value = 'Ready • tap the board';
     fruits.clear();
     gameOverFired = false;
     _clock = 0;

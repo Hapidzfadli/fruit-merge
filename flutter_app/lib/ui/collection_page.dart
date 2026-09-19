@@ -11,16 +11,16 @@ class CollectionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Koleksi & Pencapaian')),
+      appBar: AppBar(title: const Text('Collection & Achievements')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            '${state.collection.length}/9 buah hasil merge ditemukan',
+            '${state.collection.length}/9 merged fruits discovered',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const Text(
-            'Ceri adalah buah awal. Buat buah lainnya melalui merge untuk melengkapi koleksi.',
+            'Cherry is the starting fruit. Merge fruits to discover the rest of the collection.',
           ),
           for (var i = 1; i < kFruits.length; i++)
             ListTile(
@@ -29,7 +29,7 @@ class CollectionPage extends StatelessWidget {
                   : const Icon(Icons.lock_outline),
               title: Text(kFruits[i].name),
               subtitle: Text(
-                state.collection.contains(i) ? 'Ditemukan' : 'Belum ditemukan',
+                state.collection.contains(i) ? 'Discovered' : 'Not discovered yet',
               ),
             ),
           const Divider(),
@@ -43,8 +43,8 @@ class CollectionPage extends StatelessWidget {
               title: Text(entry.value),
               subtitle: Text(
                 state.achievements.contains(entry.key)
-                    ? 'Selesai • hadiah sudah diterima'
-                    : '+${AppState.achievementRewards[entry.key]} koin',
+                    ? 'Completed • reward claimed'
+                    : '+${AppState.achievementRewards[entry.key]} coins',
               ),
             ),
         ],

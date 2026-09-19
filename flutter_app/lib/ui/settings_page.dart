@@ -34,7 +34,7 @@ class SettingsPage extends StatelessWidget {
                   const SizedBox(width: 14),
                   const Expanded(
                     child: Text(
-                      'Pengaturan',
+                      'Settings',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -49,7 +49,7 @@ class SettingsPage extends StatelessWidget {
               // click-then-toggle, but SFX toggles BEFORE clicking — so
               // muting SFX plays no confirmation click, unmuting does.
               _SettingsRow(
-                label: 'Musik',
+                label: 'Music',
                 value: appState.music,
                 onToggle: () {
                   sfx.click();
@@ -57,7 +57,7 @@ class SettingsPage extends StatelessWidget {
                 },
               ),
               _SettingsRow(
-                label: 'Efek suara',
+                label: 'Sound Effects',
                 value: appState.sfx,
                 onToggle: () {
                   appState.toggleSfx();
@@ -65,7 +65,7 @@ class SettingsPage extends StatelessWidget {
                 },
               ),
               _SettingsRow(
-                label: 'Getaran',
+                label: 'Vibration',
                 value: appState.vibration,
                 onToggle: () {
                   sfx.click();
@@ -74,25 +74,25 @@ class SettingsPage extends StatelessWidget {
               ),
               const SizedBox(height: 26),
               SecondaryButton(
-                label: 'Cara Bermain',
+                label: 'How to Play',
                 onPressed: () => showTutorial(context),
               ),
               const SizedBox(height: 12),
               SecondaryButton(
-                label: 'Data & Penyimpanan',
+                label: 'Data & Storage',
                 onPressed: () => showDialog<void>(
                   context: context,
                   builder: (c) => AlertDialog(
-                    title: const Text('Data & Penyimpanan'),
+                    title: const Text('Data & Storage'),
                     content: const SingleChildScrollView(
                       child: Text(
-                        'Skor, koin, skin, pengaturan, dan pertandingan tersimpan di perangkat ini. Game ini tidak menyediakan akun atau sinkronisasi server. Menghapus data aplikasi dapat menghapus progres. Pemulihan setelah penutupan paksa menggunakan simpanan otomatis terakhir.',
+                        'Scores, coins, skins, settings, and saved games are stored on this device. This game has no accounts or server sync. Clearing app data may erase your progress. After a force-close, your game resumes from the last autosave.',
                       ),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(c),
-                        child: const Text('Tutup'),
+                        child: const Text('Close'),
                       ),
                     ],
                   ),
@@ -127,14 +127,17 @@ class _SettingsRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.text,
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text,
+              ),
             ),
           ),
+          const SizedBox(width: 12),
           ToggleSwitch(value: value, onToggle: onToggle),
         ],
       ),

@@ -1,5 +1,7 @@
 # Offline APK implementation — verified 19 September 2026
 
+Language follow-up: the Flutter interface now consistently uses English, including tutorials, dialogs, fruit and skin names, achievements, and game status messages. Save keys and asset filenames remain unchanged. The stage history below records the original implementation.
+
 ## Delivered stages
 
 | Stage | Behavior | Verification |

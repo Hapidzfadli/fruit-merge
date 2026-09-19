@@ -16,16 +16,16 @@ class _TutorialDialogState extends State<_TutorialDialog> {
   int step = 0;
   static const steps = [
     (
-      'Ketuk untuk menjatuhkan',
-      'Ketuk posisi di dalam papan. Buah langsung jatuh di posisi tersebut. Tunggu indikator siap sebelum mengetuk lagi.',
+      'Tap to drop',
+      'Tap a position inside the board to drop a fruit there. Wait for the Ready indicator before tapping again.',
     ),
     (
-      'Gabungkan buah yang sama',
-      'Dua buah yang sama akan menjadi buah yang lebih besar. Lihat urutan buah di bawah papan dan buah berikutnya di atas.',
+      'Merge matching fruits',
+      'Two matching fruits merge into a larger one. Check the fruit sequence below the board and the next fruit above it.',
     ),
     (
-      'Jaga buah di bawah garis',
-      'Buah yang melewati garis bahaya terlalu lama mengakhiri permainan. Hitung mundur memberi waktu untuk menyelamatkan papan dengan merge.',
+      'Keep fruits below the line',
+      'The game ends if a fruit stays above the danger line too long. Use the countdown to make a merge and save your board.',
     ),
   ];
   @override
@@ -35,7 +35,7 @@ class _TutorialDialogState extends State<_TutorialDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Lewati'),
+        child: const Text('Skip'),
       ),
       TextButton(
         onPressed: () {
@@ -45,7 +45,7 @@ class _TutorialDialogState extends State<_TutorialDialog> {
             setState(() => step++);
           }
         },
-        child: Text(step == 2 ? 'Mulai' : 'Berikutnya'),
+        child: Text(step == 2 ? 'Start' : 'Next'),
       ),
     ],
   );

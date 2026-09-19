@@ -62,7 +62,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Penyimpanan gagal. Coba lagi.')),
+          const SnackBar(content: Text('Could not save your game. Please try again.')),
         );
       }
     }
@@ -234,18 +234,18 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           final confirmed = await showDialog<bool>(
             context: context,
             builder: (dialogContext) => AlertDialog(
-              title: const Text('Mulai ulang?'),
+              title: const Text('Restart game?'),
               content: const Text(
-                'Pertandingan ini akan diganti dengan permainan baru.',
+                'This game will be replaced with a new one.',
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext, false),
-                  child: const Text('Batal'),
+                  child: const Text('Cancel'),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext, true),
-                  child: const Text('Mulai ulang'),
+                  child: const Text('Restart Game'),
                 ),
               ],
             ),
@@ -322,7 +322,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                         ),
                       ),
                       Expanded(
-                        child: _Pill(label: 'Skor', value: '${appState.score}'),
+                        child: _Pill(label: 'Score', value: '${appState.score}'),
                       ),
                       ValueListenableBuilder<int>(
                         valueListenable: _game.nextIndexNotifier,
@@ -525,7 +525,7 @@ class _NextPreview extends StatelessWidget {
       child: Column(
         children: [
           const Text(
-            'BERIKUT',
+            'NEXT',
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w600,
@@ -579,7 +579,7 @@ class _PauseDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Jeda',
+              'Paused',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
@@ -588,7 +588,7 @@ class _PauseDialog extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             PrimaryButton(
-              label: 'Lanjut',
+              label: 'Resume',
               onPressed: () {
                 sfx.click();
                 onResume();
@@ -596,7 +596,7 @@ class _PauseDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SecondaryButton(
-              label: 'Ulangi',
+              label: 'Restart',
               onPressed: () {
                 sfx.click();
                 onRestart();
@@ -604,7 +604,7 @@ class _PauseDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SecondaryButton(
-              label: 'Beranda',
+              label: 'Home',
               onPressed: () {
                 sfx.click();
                 onHome();
@@ -617,7 +617,7 @@ class _PauseDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Musik',
+                    'Music',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

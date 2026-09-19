@@ -108,7 +108,7 @@ class MenuPage extends StatelessWidget {
                             SizedBox(
                               width: 220,
                               child: PrimaryButton(
-                                label: 'Main Baru',
+                                label: 'New Game',
                                 fontSize: 22,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 18,
@@ -118,20 +118,20 @@ class MenuPage extends StatelessWidget {
                                     final replace = await showDialog<bool>(
                                       context: context,
                                       builder: (c) => AlertDialog(
-                                        title: const Text('Main baru?'),
+                                        title: const Text('Start a new game?'),
                                         content: const Text(
-                                          'Permainan tersimpan akan diganti.',
+                                          'Your saved game will be replaced.',
                                         ),
                                         actions: [
                                           TextButton(
                                             onPressed: () =>
                                                 Navigator.pop(c, false),
-                                            child: const Text('Batal'),
+                                            child: const Text('Cancel'),
                                           ),
                                           TextButton(
                                             onPressed: () =>
                                                 Navigator.pop(c, true),
-                                            child: const Text('Main Baru'),
+                                            child: const Text('New Game'),
                                           ),
                                         ],
                                       ),
@@ -157,7 +157,7 @@ class MenuPage extends StatelessWidget {
                                         GamePage(savedRun: state.activeRun),
                                   ),
                                 ),
-                                child: const Text('Lanjutkan'),
+                                child: const Text('Continue'),
                               ),
                             const SizedBox(height: 20),
                             TextButton(
@@ -166,7 +166,7 @@ class MenuPage extends StatelessWidget {
                                   builder: (_) => const CollectionPage(),
                                 ),
                               ),
-                              child: const Text('Koleksi & Pencapaian'),
+                              child: const Text('Collection & Achievements'),
                             ),
                             Wrap(
                               alignment: WrapAlignment.center,
@@ -175,7 +175,7 @@ class MenuPage extends StatelessWidget {
                               children: [
                                 _MenuLink(
                                   icon: Icons.settings_rounded,
-                                  label: 'Pengaturan',
+                                  label: 'Settings',
                                   onTap: () {
                                     context.read<SfxService>().click();
                                     Navigator.of(context).push(
@@ -187,7 +187,7 @@ class MenuPage extends StatelessWidget {
                                 ),
                                 _MenuLink(
                                   icon: Icons.leaderboard_rounded,
-                                  label: 'Ranking',
+                                  label: 'Leaderboard',
                                   onTap: () {
                                     context.read<SfxService>().click();
                                     Navigator.of(context).push(
@@ -199,7 +199,7 @@ class MenuPage extends StatelessWidget {
                                 ),
                                 _MenuLink(
                                   icon: Icons.storefront_rounded,
-                                  label: 'Toko',
+                                  label: 'Shop',
                                   onTap: () {
                                     context.read<SfxService>().click();
                                     Navigator.of(context).push(
