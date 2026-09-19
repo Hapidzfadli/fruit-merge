@@ -1,11 +1,15 @@
 import 'dart:typed_data';
 import 'dart:async';
+
 import '../models/run_snapshot.dart';
+
 import 'dart:ui' as ui;
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
+
 import '../audio/sfx_service.dart';
 import '../audio/vibration_service.dart';
 import '../game/fruit_merge_game.dart';
@@ -56,9 +60,14 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       await _appState.saveRun(snapshot);
       _lastSave = signature;
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Penyimpanan gagal. Coba lagi.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Penyimpanan gagal. Coba lagi.')),
+        );
+      }
     }
   }
+
   final List<_ScorePop> _pops = [];
   int _popId = 0;
   final GlobalKey _boardKey = GlobalKey();
@@ -69,7 +78,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _appState = context.read<AppState>();
     _sfx = context.read<SfxService>();
-    _runId = widget.savedRun?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
+    _runId =
+        widget.savedRun?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
     _game = FruitMergeGame(
       onScore: (amount) => _appState.addScore(amount),
       onMerge: (level) {
@@ -104,16 +114,21 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         await _appState.persist();
         if (!mounted) return;
         _paused = false;
-        if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+        if (WidgetsBinding.instance.lifecycleState ==
+            AppLifecycleState.resumed) {
           _game.resumeEngine();
         } else {
           _openPause();
         }
       }
-      _autosave = Timer.periodic(const Duration(seconds: 2), (_) { if (!_paused) _save(); });
+      _autosave = Timer.periodic(const Duration(seconds: 2), (_) {
+        if (!_paused) _save();
+      });
       _save();
       if (_paused) return;
-      if (_appState.music) _sfx.startMusic(); // app.js startGame(): if (state.music) startMusic()
+      if (_appState.music) {
+        _sfx.startMusic(); // app.js startGame(): if (state.music) startMusic()
+      }
     });
   }
 
@@ -139,11 +154,17 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   Future<Uint8List?> _captureBoardSnapshot() async {
     try {
       await WidgetsBinding.instance.endOfFrame;
-      final boundary = _boardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final boundary =
+          _boardKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) return null;
       final image = await boundary.toImage(pixelRatio: 2.0);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      return byteData?.buffer.asUint8List();
+      try {
+        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+        return byteData?.buffer.asUint8List();
+      } finally {
+        image.dispose();
+      }
     } catch (_) {
       return null; // best-effort — GameOverPage just falls back to no snapshot
     }
@@ -158,10 +179,23 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final snapshot = await _captureBoardSnapshot();
     final score = _appState.score;
     final newRecord = score > _appState.highScore;
-    final earned = _appState.recordGameOver(runId: _runId, highestLevel: _game.fruits.fold<int>(0, (level, fruit) => fruit.index > level ? fruit.index : level));
+    final earned = _appState.recordGameOver(
+      runId: _runId,
+      highestLevel: _game.fruits.fold<int>(
+        0,
+        (level, fruit) => fruit.index > level ? fruit.index : level,
+      ),
+    );
     if (!mounted) return;
     final again = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => GameOverPage(score: score, earned: earned, boardSnapshot: snapshot, newRecord: newRecord)),
+      MaterialPageRoute(
+        builder: (_) => GameOverPage(
+          score: score,
+          earned: earned,
+          boardSnapshot: snapshot,
+          newRecord: newRecord,
+        ),
+      ),
     );
     if (!mounted) return;
     if (again == true) {
@@ -197,15 +231,28 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           Navigator.of(context).pop('resume');
         },
         onRestart: () async {
-          final confirmed = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
-            title: const Text('Mulai ulang?'),
-            content: const Text('Pertandingan ini akan diganti dengan permainan baru.'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Batal')),
-              TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Mulai ulang')),
-            ],
-          ));
-          if (confirmed == true && mounted) Navigator.of(context).pop('restart');
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('Mulai ulang?'),
+              content: const Text(
+                'Pertandingan ini akan diganti dengan permainan baru.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: const Text('Batal'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Mulai ulang'),
+                ),
+              ],
+            ),
+          );
+          if (confirmed == true && mounted) {
+            Navigator.of(context).pop('restart');
+          }
         },
         onHome: () {
           Navigator.of(context).pop('home');
@@ -243,98 +290,142 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final appState = context.watch<AppState>();
     return PopScope(
       canPop: _leaving,
-      onPopInvokedWithResult: (didPop, result) { if (!didPop) _openPause(); },
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _openPause();
+      },
       child: Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: kScreenGradient),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 40, 20, 14),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Material(
-                      color: Colors.white,
-                      shape: const CircleBorder(),
-                      elevation: 2,
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: _openPause,
-                        child: const SizedBox(width: 44, height: 44, child: Icon(Icons.pause_rounded, color: AppColors.text)),
+        body: Container(
+          decoration: const BoxDecoration(gradient: kScreenGradient),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 40, 20, 14),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Material(
+                        color: Colors.white,
+                        shape: const CircleBorder(),
+                        elevation: 2,
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: _openPause,
+                          child: const SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Icon(
+                              Icons.pause_rounded,
+                              color: AppColors.text,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: _Pill(label: 'Skor', value: '${appState.score}'),
+                      ),
+                      ValueListenableBuilder<int>(
+                        valueListenable: _game.nextIndexNotifier,
+                        builder: (context, nextIndex, _) =>
+                            _NextPreview(index: nextIndex),
+                      ),
+                    ],
+                  ),
+                  ValueListenableBuilder<String>(
+                    valueListenable: _game.statusText,
+                    builder: (_, text, _) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Text(
+                        text,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppColors.coral,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                    Expanded(child: _Pill(label: 'Skor', value: '${appState.score}')),
-                    ValueListenableBuilder<int>(
-                      valueListenable: _game.nextIndexNotifier,
-                      builder: (context, nextIndex, _) => _NextPreview(index: nextIndex),
-                    ),
-                  ],
-                ),
-                ValueListenableBuilder<String>(valueListenable: _game.statusText, builder: (_, text, _) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6), child: Text(text, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.coral, fontWeight: FontWeight.w600)))),
-                Expanded(
-                  child: Center(
-                    child: AspectRatio(
-                      aspectRatio: GameConstants.pw / GameConstants.ph,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: GameConstants.boardWidth),
-                        child: RepaintBoundary(
-                          key: _boardKey,
-                          child: LayoutBuilder(
-                            builder: (context, boardConstraints) {
-                              // The board scales down on small screens, so derive
-                              // the corner radii from the world-space constant the
-                              // physics uses. A fixed pixel radius would drift out
-                              // of step with the simulated boundary and clip fruit
-                              // resting in the corners.
-                              const borderWidth = 8.0;
-                              // The game canvas sits inside the border, so it's the
-                              // inner width that maps onto the pw-wide world.
-                              final scale = (boardConstraints.maxWidth - borderWidth * 2) / GameConstants.pw;
-                              final innerRadius = GameConstants.cornerRadius * scale;
-                              return Stack(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.3),
-                                      border: Border.all(color: const Color(0xFFE8B98A), width: borderWidth),
-                                      borderRadius: BorderRadius.vertical(
-                                        bottom: Radius.circular(innerRadius + borderWidth),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: AspectRatio(
+                        aspectRatio: GameConstants.pw / GameConstants.ph,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: GameConstants.boardWidth,
+                          ),
+                          child: RepaintBoundary(
+                            key: _boardKey,
+                            child: LayoutBuilder(
+                              builder: (context, boardConstraints) {
+                                // The board scales down on small screens, so derive
+                                // the corner radii from the world-space constant the
+                                // physics uses. A fixed pixel radius would drift out
+                                // of step with the simulated boundary and clip fruit
+                                // resting in the corners.
+                                const borderWidth = 8.0;
+                                // The game canvas sits inside the border, so it's the
+                                // inner width that maps onto the pw-wide world.
+                                final scale =
+                                    (boardConstraints.maxWidth -
+                                        borderWidth * 2) /
+                                    GameConstants.pw;
+                                final innerRadius =
+                                    GameConstants.cornerRadius * scale;
+                                return Stack(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        border: Border.all(
+                                          color: const Color(0xFFE8B98A),
+                                          width: borderWidth,
+                                        ),
+                                        borderRadius: BorderRadius.vertical(
+                                          bottom: Radius.circular(
+                                            innerRadius + borderWidth,
+                                          ),
+                                        ),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.vertical(
+                                          bottom: Radius.circular(innerRadius),
+                                        ),
+                                        // MouseRegion catches real hover (desktop/web mouse
+                                        // moving with no button down) so the drop preview
+                                        // tracks the cursor even before a click — Flame's
+                                        // own gesture callbacks only fire on an active
+                                        // pointer (touch/drag), not passive hover.
+                                        child: MouseRegion(
+                                          onHover: (event) =>
+                                              _game.updateAimFromScreen(
+                                                event.localPosition,
+                                              ),
+                                          child: GameWidget(game: _game),
+                                        ),
                                       ),
                                     ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(innerRadius)),
-                                      // MouseRegion catches real hover (desktop/web mouse
-                                      // moving with no button down) so the drop preview
-                                      // tracks the cursor even before a click — Flame's
-                                      // own gesture callbacks only fire on an active
-                                      // pointer (touch/drag), not passive hover.
-                                      child: MouseRegion(
-                                        onHover: (event) => _game.updateAimFromScreen(event.localPosition),
-                                        child: GameWidget(game: _game),
-                                      ),
-                                    ),
-                                  ),
-                                  for (final pop in _pops) _ScorePopWidget(pop: pop),
-                                ],
-                              );
-                            },
+                                    for (final pop in _pops)
+                                      _ScorePopWidget(pop: pop),
+                                  ],
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                const MergeChainStrip(),
-              ],
+                  const SizedBox(height: 12),
+                  const MergeChainStrip(),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
   }
 }
 
@@ -354,11 +445,25 @@ class _ScorePopWidget extends StatelessWidget {
           curve: Curves.easeOut,
           builder: (context, t, child) => Opacity(
             opacity: 1 - t,
-            child: Transform.translate(offset: Offset(0, -34 * t), child: child),
+            child: Transform.translate(
+              offset: Offset(0, -34 * t),
+              child: child,
+            ),
           ),
           child: Text(
             '+${pop.amount}',
-            style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.coral, fontSize: 14, shadows: [Shadow(color: Colors.white, blurRadius: 0, offset: Offset(0, 1))]),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppColors.coral,
+              fontSize: 14,
+              shadows: [
+                Shadow(
+                  color: Colors.white,
+                  blurRadius: 0,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -375,11 +480,29 @@ class _Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.75), borderRadius: BorderRadius.circular(18)),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(18),
+      ),
       child: Column(
         children: [
-          Text(label.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1, color: AppColors.label)),
-          Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.text)),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1,
+              color: AppColors.label,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: AppColors.text,
+            ),
+          ),
         ],
       ),
     );
@@ -395,16 +518,29 @@ class _NextPreview extends StatelessWidget {
     return Container(
       width: 56,
       padding: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.75), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         children: [
-          const Text('BERIKUT', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppColors.label)),
+          const Text(
+            'BERIKUT',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: AppColors.label,
+            ),
+          ),
           const SizedBox(height: 4),
           // Extra height below the label so a stem or crown, which the art
           // draws above the fruit's body box, still has room.
           SizedBox(
             height: 40,
-            child: Align(alignment: Alignment.bottomCenter, child: FruitImage(index: index, size: 30)),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: FruitImage(index: index, size: 30),
+            ),
           ),
         ],
       ),
@@ -435,37 +571,66 @@ class _PauseDialog extends StatelessWidget {
       child: Container(
         width: 250,
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28)),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Jeda', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.text)),
+            const Text(
+              'Jeda',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text,
+              ),
+            ),
             const SizedBox(height: 14),
-            PrimaryButton(label: 'Lanjut', onPressed: () {
-              sfx.click();
-              onResume();
-            }),
+            PrimaryButton(
+              label: 'Lanjut',
+              onPressed: () {
+                sfx.click();
+                onResume();
+              },
+            ),
             const SizedBox(height: 12),
-            SecondaryButton(label: 'Ulangi', onPressed: () {
-              sfx.click();
-              onRestart();
-            }),
+            SecondaryButton(
+              label: 'Ulangi',
+              onPressed: () {
+                sfx.click();
+                onRestart();
+              },
+            ),
             const SizedBox(height: 12),
-            SecondaryButton(label: 'Beranda', onPressed: () {
-              sfx.click();
-              onHome();
-            }),
+            SecondaryButton(
+              label: 'Beranda',
+              onPressed: () {
+                sfx.click();
+                onHome();
+              },
+            ),
             const SizedBox(height: 14),
             AnimatedBuilder(
               animation: appState,
               builder: (context, _) => Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Musik', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.muted)),
-                  ToggleSwitch(value: appState.music, onToggle: () {
-                    sfx.click();
-                    appState.toggleMusic();
-                  }),
+                  const Text(
+                    'Musik',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                  ToggleSwitch(
+                    value: appState.music,
+                    onToggle: () {
+                      sfx.click();
+                      appState.toggleMusic();
+                    },
+                  ),
                 ],
               ),
             ),

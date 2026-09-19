@@ -1,6 +1,8 @@
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../audio/sfx_service.dart';
 import '../state/app_state.dart';
 import '../game/fruit_sprites.dart';
@@ -20,7 +22,13 @@ class GameOverPage extends StatelessWidget {
   final Uint8List? boardSnapshot;
   final bool newRecord;
 
-  const GameOverPage({super.key, required this.score, required this.earned, this.boardSnapshot, this.newRecord = false});
+  const GameOverPage({
+    super.key,
+    required this.score,
+    required this.earned,
+    this.boardSnapshot,
+    this.newRecord = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,20 +41,52 @@ class GameOverPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(24, 60, 24, 16),
             child: Column(
               children: [
-                const Text('Permainan Selesai', textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.coral)),
+                const Text(
+                  'Permainan Selesai',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.coral,
+                  ),
+                ),
                 const SizedBox(height: 22),
-                if (newRecord) const Padding(padding: EdgeInsets.only(bottom: 12), child: Text('Rekor baru! 🏆', style: TextStyle(color: AppColors.coral, fontWeight: FontWeight.bold))),
+                if (newRecord)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      'Rekor baru! 🏆',
+                      style: TextStyle(
+                        color: AppColors.coral,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(child: _StatCard(label: 'Skor', value: '$score')),
+                    Expanded(
+                      child: _StatCard(label: 'Skor', value: '$score'),
+                    ),
                     const SizedBox(width: 14),
-                    Expanded(child: _StatCard(label: 'Rekor', value: '${appState.highScore}')),
+                    Expanded(
+                      child: _StatCard(
+                        label: 'Rekor',
+                        value: '${appState.highScore}',
+                      ),
+                    ),
                   ],
                 ),
                 if (earned > 0) ...[
                   const SizedBox(height: 10),
-                  Text('+$earned koin diperoleh', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF8A6D1A))),
+                  Text(
+                    '+$earned koin diperoleh',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF8A6D1A),
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 18),
                 Expanded(child: _BoardSnapshot(bytes: boardSnapshot)),
@@ -61,7 +101,8 @@ class GameOverPage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         onPressed: () {
                           context.read<SfxService>().click();
-                          Navigator.of(context).pop(true); // signal caller to restart
+                          Navigator.of(context)
+                              .pop(true); // signal caller to restart
                         },
                       ),
                     ),
@@ -99,12 +140,33 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [BoxShadow(color: Color(0x0F000000), blurRadius: 8, offset: Offset(0, 2))],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0F000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Text(label.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1, color: AppColors.label)),
-          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.text)),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1,
+              color: AppColors.label,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: AppColors.text,
+            ),
+          ),
         ],
       ),
     );
@@ -158,11 +220,13 @@ class _FallStrip extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) => Stack(
           children: drops
-              .map((d) => Positioned(
-                    left: constraints.maxWidth * d.left,
-                    top: 20, // leaves room for stems drawn above the body box
-                    child: FruitImage(index: d.fruit, size: d.size),
-                  ))
+              .map(
+                (d) => Positioned(
+                  left: constraints.maxWidth * d.left,
+                  top: 20, // leaves room for stems drawn above the body box
+                  child: FruitImage(index: d.fruit, size: d.size),
+                ),
+              )
               .toList(),
         ),
       ),

@@ -1,9 +1,11 @@
 import 'dart:math' as math;
 import 'dart:ui';
+
 import 'package:flame/game.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter/material.dart' show Colors;
+
 import '../models/constants.dart';
 import '../models/fruit_data.dart';
 import 'fruit_body.dart';
@@ -32,6 +34,7 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   static const double overLimitMs = GameConstants.overLimitMs;
   static const double dropCooldownMs = GameConstants.dropCooldownMs;
   static const double spawnAnimMs = GameConstants.spawnAnimMs;
+
   /// Overlap-relaxation sweeps per substep. The analogue of Matter.js's
   /// positionIterations (app.js:506 used 14); circles-only contacts
   /// converge much faster than Matter's general solver, so fewer suffice.
@@ -53,8 +56,10 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   double _lastDropAtMs = -1e9;
   bool gameOverFired = false;
 
-  int currentIndex = _randomDropIndex();
-  final ValueNotifier<int> nextIndexNotifier = ValueNotifier(_randomDropIndex());
+  late final math.Random _random;
+  late int currentIndex;
+  late final ValueNotifier<int> nextIndexNotifier;
+  double _accumulator = 0;
   double dropX = pw / 2;
   final ValueNotifier<String> statusText = ValueNotifier('Siap • ketuk papan');
   bool madeWatermelon = false;
@@ -62,24 +67,53 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   double _lastMerge = -100;
   double _celebrateUntil = -1;
   void _updateStatus() {
-    final danger = fruits.where((f) => !f.dead).fold<double>(0, (value, f) => math.max(value, f.overMs));
+    final danger = fruits
+        .where((f) => !f.dead)
+        .fold<double>(0, (value, f) => math.max(value, f.overMs));
     final cooling = _clock * 1000 - _lastDropAtMs < dropCooldownMs;
-    statusText.value = danger > 0 ? 'Bahaya • ${((overLimitMs - danger) / 1000).clamp(0, 2.9).toStringAsFixed(1)} dtk' :
-      _clock < _celebrateUntil ? 'Semangka pertama! 🍉' :
-      _combo >= 3 && _clock - _lastMerge <= 1 ? 'Combo ×$_combo!' :
-      cooling ? 'Tunggu sebentar…' : 'Siap • ketuk papan';
+    statusText.value = danger > 0
+        ? 'Bahaya • ${((overLimitMs - danger) / 1000).clamp(0, 2.9).toStringAsFixed(1)} dtk'
+        : _clock < _celebrateUntil
+        ? 'Semangka pertama! 🍉'
+        : _combo >= 3 && _clock - _lastMerge <= 1
+        ? 'Combo ×$_combo!'
+        : cooling
+        ? 'Tunggu sebentar…'
+        : 'Siap • ketuk papan';
   }
+
   RunSnapshot snapshot(String id, int score) => RunSnapshot({
-    'version': 1, 'id': id, 'score': score, 'clock': _clock,
-    'watermelon': madeWatermelon, 'combo': _combo, 'lastMerge': _lastMerge,
-    'current': currentIndex, 'next': nextIndexNotifier.value, 'dropX': dropX,
-    'cooldown': (dropCooldownMs - (_clock * 1000 - _lastDropAtMs)).clamp(0, dropCooldownMs),
-    'fruits': fruits.where((f) => !f.dead).map((f) => {
-      'index': f.index, 'x': f.position.x, 'y': f.position.y,
-      'vx': f.velocity.x, 'vy': f.velocity.y, 'angle': f.angle,
-      'angular': f.angularVelocity, 'age': _clock - f.spawnAt,
-      'over': f.overMs, 'flash': f.flash,
-    }).toList(),
+    'version': 1,
+    'id': id,
+    'score': score,
+    'clock': _clock,
+    'watermelon': madeWatermelon,
+    'combo': _combo,
+    'lastMerge': _lastMerge,
+    'current': currentIndex,
+    'next': nextIndexNotifier.value,
+    'dropX': dropX,
+    'cooldown': (dropCooldownMs - (_clock * 1000 - _lastDropAtMs)).clamp(
+      0,
+      dropCooldownMs,
+    ),
+    'fruits': fruits
+        .where((f) => !f.dead)
+        .map(
+          (f) => {
+            'index': f.index,
+            'x': f.position.x,
+            'y': f.position.y,
+            'vx': f.velocity.x,
+            'vy': f.velocity.y,
+            'angle': f.angle,
+            'angular': f.angularVelocity,
+            'age': _clock - f.spawnAt,
+            'over': f.overMs,
+            'flash': f.flash,
+          },
+        )
+        .toList(),
   });
 
   void restore(RunSnapshot snapshot) {
@@ -94,18 +128,29 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     dropX = (d['dropX'] as num).toDouble().clamp(pw * .08, pw * .92);
     _lastDropAtMs = _clock * 1000 - dropCooldownMs + (d['cooldown'] as num);
     for (final f in d['fruits'] as List) {
-      fruits.add(FruitBody(position: Vector2((f['x'] as num).toDouble(), (f['y'] as num).toDouble()),
-        index: f['index'] as int, spawnAt: _clock - (f['age'] as num),
-        velocity: Vector2((f['vx'] as num).toDouble(), (f['vy'] as num).toDouble()),
-        angularVelocity: (f['angular'] as num).toDouble())
-        ..angle = (f['angle'] as num).toDouble()
-        ..overMs = (f['over'] as num).toDouble()
-        ..flash = (f['flash'] as num).toDouble());
+      fruits.add(
+        FruitBody(
+            position: Vector2(
+              (f['x'] as num).toDouble(),
+              (f['y'] as num).toDouble(),
+            ),
+            index: f['index'] as int,
+            spawnAt: _clock - (f['age'] as num),
+            velocity: Vector2(
+              (f['vx'] as num).toDouble(),
+              (f['vy'] as num).toDouble(),
+            ),
+            angularVelocity: (f['angular'] as num).toDouble(),
+          )
+          ..angle = (f['angle'] as num).toDouble()
+          ..overMs = (f['over'] as num).toDouble()
+          ..flash = (f['flash'] as num).toDouble(),
+      );
     }
     pauseEngine();
   }
 
-  static int _randomDropIndex() => math.Random().nextInt(5);
+  int _randomDropIndex() => _random.nextInt(5);
 
   FruitMergeGame({
     required this.onScore,
@@ -113,7 +158,18 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     required this.onDrop,
     required this.onGameOver,
     required this.onScorePop,
-  });
+    math.Random? random,
+  }) {
+    _random = random ?? math.Random();
+    currentIndex = _randomDropIndex();
+    nextIndexNotifier = ValueNotifier(_randomDropIndex());
+  }
+
+  @override
+  void resumeEngine() {
+    _accumulator = 0;
+    super.resumeEngine();
+  }
 
   // FlameGame paints solid black behind everything by default — make it
   // transparent so the board's translucent Container decoration (set in
@@ -126,10 +182,19 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   @override
   void update(double dt) {
     super.update(dt);
-    _clock += dt;
-    if (gameOverFired) return;
+    if (gameOverFired || !dt.isFinite || dt <= 0) return;
+    const fixedStep = 1 / 60;
+    _accumulator = math.min(_accumulator + dt, fixedStep * 6);
+    var steps = 0;
+    while (_accumulator + 1e-10 >= fixedStep && steps < 6 && !gameOverFired) {
+      _accumulator = math.max(0, _accumulator - fixedStep);
+      _clock += fixedStep;
+      _simulateStep(fixedStep);
+      steps++;
+    }
+  }
 
-    final stepDt = dt.clamp(0.0, 1 / 30);
+  void _simulateStep(double stepDt) {
     const substeps = 2;
     final sub = stepDt / substeps;
     for (var s = 0; s < substeps; s++) {
@@ -284,7 +349,13 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     }
   }
 
-  void _resolveCirclePair(FruitBody a, FruitBody b, Vector2 delta, double dist, double minDist) {
+  void _resolveCirclePair(
+    FruitBody a,
+    FruitBody b,
+    Vector2 delta,
+    double dist,
+    double minDist,
+  ) {
     final normal = delta / dist;
     final overlap = minDist - dist;
     final massA = a.radius * a.radius;
@@ -302,7 +373,9 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     // gravity re-adds a sliver of approach speed every frame, and bouncing
     // that back turns into perpetual micro-jitter — so below this speed the
     // collision is treated as fully inelastic and the pile goes still.
-    final e = -velAlongNormal < _restingSpeed ? 0.0 : math.min(a.restitution, b.restitution);
+    final e = -velAlongNormal < _restingSpeed
+        ? 0.0
+        : math.min(a.restitution, b.restitution);
     final invMassA = 1 / massA;
     final invMassB = 1 / massB;
     final jImpulse = -(1 + e) * velAlongNormal / (invMassA + invMassB);
@@ -337,8 +410,11 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
       position: Vector2(x, y),
       index: newIndex,
       spawnAt: _clock,
-      velocity: Vector2((a.velocity.x + b.velocity.x) / 2, -144), // app.js vy:-2.4 * 60
-      angularVelocity: (math.Random().nextDouble() - 0.5) * 3.6,
+      velocity: Vector2(
+        (a.velocity.x + b.velocity.x) / 2,
+        -144,
+      ), // app.js vy:-2.4 * 60
+      angularVelocity: (_random.nextDouble() - 0.5) * 3.6,
       flash: true,
     );
     fruits.add(merged);
@@ -359,7 +435,10 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
         f.velocity *= 0.5;
         f.angularVelocity = 0;
       }
-      f.flash = math.max(0, f.flash - dt * 3.3); // ~0.055/frame @ 60fps — app.js:561
+      f.flash = math.max(
+        0,
+        f.flash - dt * 3.3,
+      ); // ~0.055/frame @ 60fps — app.js:561
 
       // Danger timer. Unlike app.js (logic.md §8.4) this deliberately does
       // NOT require the fruit to be settled: the rule is simply "top of the
@@ -393,12 +472,14 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     final idx = currentIndex;
     final r = kFruits[idx].size / 2;
     final x = dropX.clamp(r + 1, pw - r - 1);
-    fruits.add(FruitBody(
-      position: Vector2(x, r + 2),
-      index: idx,
-      spawnAt: _clock,
-      velocity: Vector2(0, 120), // app.js vy:2 * 60
-    ));
+    fruits.add(
+      FruitBody(
+        position: Vector2(x, r + 2),
+        index: idx,
+        spawnAt: _clock,
+        velocity: Vector2(0, 120), // app.js vy:2 * 60
+      ),
+    );
     onDrop();
     currentIndex = nextIndexNotifier.value;
     nextIndexNotifier.value = _randomDropIndex();
@@ -406,6 +487,7 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   }
 
   void resetBoard() {
+    _accumulator = 0;
     madeWatermelon = false;
     _combo = 0;
     _lastMerge = -100;
@@ -424,7 +506,11 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
 
   ({double scale, double dx, double dy}) _fitTransform() {
     final scale = math.min(size.x / pw, size.y / ph);
-    return (scale: scale, dx: (size.x - pw * scale) / 2, dy: (size.y - ph * scale) / 2);
+    return (
+      scale: scale,
+      dx: (size.x - pw * scale) / 2,
+      dy: (size.y - ph * scale) / 2,
+    );
   }
 
   Vector2 _screenToWorld(Vector2 local) {
@@ -441,7 +527,8 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   /// real hover events with no button pressed, so the aim preview can track
   /// the cursor continuously even before a click, matching the original
   /// web version's `pointermove` handler (app.js:670-676).
-  void updateAimFromScreen(Offset local) => _updateAimFromScreen(Vector2(local.dx, local.dy));
+  void updateAimFromScreen(Offset local) =>
+      _updateAimFromScreen(Vector2(local.dx, local.dy));
 
   // A single tap/click both aims AND drops in one motion — no more
   // press-drag-release. onTapDown (not onTapUp) fires unambiguously the
@@ -489,7 +576,11 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     const dashLen = 6.0, gapLen = 5.0;
     double x = 0;
     while (x < pw) {
-      canvas.drawLine(Offset(x, lineY), Offset(math.min(x + dashLen, pw), lineY), paint);
+      canvas.drawLine(
+        Offset(x, lineY),
+        Offset(math.min(x + dashLen, pw), lineY),
+        paint,
+      );
       x += dashLen + gapLen;
     }
   }
@@ -501,7 +592,11 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     const dashLen = 6.0, gapLen = 5.0;
     double y = 0;
     while (y < ph) {
-      canvas.drawLine(Offset(dropX, y), Offset(dropX, math.min(y + dashLen, ph)), paint);
+      canvas.drawLine(
+        Offset(dropX, y),
+        Offset(dropX, math.min(y + dashLen, ph)),
+        paint,
+      );
       y += dashLen + gapLen;
     }
 
@@ -547,8 +642,8 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
       expression: isMergePop
           ? FruitExpression.mergePop
           : isWarning
-              ? FruitExpression.warning
-              : FruitExpression.normal,
+          ? FruitExpression.warning
+          : FruitExpression.normal,
     );
     canvas.restore();
 

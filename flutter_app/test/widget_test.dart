@@ -5,8 +5,13 @@ import 'package:flutter_app/game/fruit_sprites.dart';
 import 'package:flutter_app/models/skin_data.dart';
 import 'package:flutter_app/main.dart';
 
+import 'audio_mock.dart';
+
 void main() {
-  testWidgets('App boots and shows the menu PLAY button', (WidgetTester tester) async {
+  testWidgets('App boots and shows the menu PLAY button', (
+    WidgetTester tester,
+  ) async {
+    mockAudioChannels();
     // AppState.load() calls SharedPreferences.getInstance(), which needs a
     // mocked platform channel response in the test environment — without
     // this the future never resolves and pumpAndSettle hangs indefinitely.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'audio/sfx_service.dart';
 import 'game/fruit_sprites.dart';
 import 'state/app_state.dart';
@@ -52,15 +53,28 @@ class _FruitMergeAppState extends State<FruitMergeApp> {
       child: MaterialApp(
         title: 'Fruit Merge Adventure',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(useMaterial3: true, colorSchemeSeed: const Color(0xFFFF9F1C)),
+        theme: ThemeData(
+          useMaterial3: true,
+          colorSchemeSeed: const Color(0xFFFF9F1C),
+        ),
         home: FutureBuilder<void>(
           future: _loadFuture,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Scaffold(body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Text('Game belum berhasil dimuat.'),
-                TextButton(onPressed: () => setState(() => _loadFuture = _boot()), child: const Text('Coba lagi')),
-              ])));
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Game belum berhasil dimuat.'),
+                      TextButton(
+                        onPressed: () => setState(() => _loadFuture = _boot()),
+                        child: const Text('Coba lagi'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
             if (snapshot.connectionState != ConnectionState.done) {
               // Deliberately not an animated spinner: start-up is brief, and
@@ -71,7 +85,11 @@ class _FruitMergeAppState extends State<FruitMergeApp> {
                 body: Center(
                   child: Text(
                     'Fruit Merge',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFFFF6B4A)),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFFF6B4A),
+                    ),
                   ),
                 ),
               );

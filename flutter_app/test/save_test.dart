@@ -4,10 +4,47 @@ import 'package:flutter_app/game/fruit_merge_game.dart';
 import 'package:flutter_app/models/run_snapshot.dart';
 import 'package:flutter_app/state/app_state.dart';
 
-FruitMergeGame game() => FruitMergeGame(onScore: (_) {}, onMerge: (_) {}, onDrop: () {}, onGameOver: () {}, onScorePop: (_, _) {});
+import 'dart:convert';
+
+import 'package:flame/game.dart';
+import 'package:flutter_app/game/fruit_body.dart';
+
+FruitMergeGame game() => FruitMergeGame(
+  onScore: (_) {},
+  onMerge: (_) {},
+  onDrop: () {},
+  onGameOver: () {},
+  onScorePop: (_, _) {},
+);
 void main() {
+  test('danger age and timer survive restoration; corrupt snapshot leaves wallet intact', () async {
+    final a = game();
+    a.fruits.add(
+      FruitBody(position: Vector2(100, 40), index: 3, spawnAt: -2)
+        ..overMs = 2100,
+    );
+    final checkpoint = a.snapshot('danger', 70);
+    final b = game()..restore(checkpoint);
+    expect(b.fruits.single.overMs, 2100);
+    expect(b.fruits.single.spawnAt, -2);
+    expect(RunSnapshot.parse({...checkpoint.data, 'combo': 'invalid'}), isNull);
+    SharedPreferences.setMockInitialValues({
+      'fruitMergeAdventure.save': jsonEncode({
+        'coins': 123,
+        'highScore': 456,
+        'activeRun': {'version': 99},
+      }),
+    });
+    final state = AppState();
+    await state.load();
+    expect(state.activeRun, isNull);
+    expect(state.coins, 123);
+    expect(state.highScore, 456);
+  });
   test('moving board and cooldown round trip; invalid checkpoint rejected', () {
-    final a = game()..dropFruit()..update(1/60);
+    final a = game()
+      ..dropFruit()
+      ..update(1 / 60);
     final snapshot = a.snapshot('run', 40);
     final b = game()..restore(RunSnapshot.parse(snapshot.data)!);
     expect(b.snapshot('run', 40).data, snapshot.data);
@@ -17,13 +54,15 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final a = AppState();
     await a.saveRun(game().snapshot('run', 100));
-    final b = AppState(); await b.load();
+    final b = AppState();
+    await b.load();
     expect(b.activeRun!.score, 100);
     b.addScore(100);
     expect(b.recordGameOver(runId: 'run'), 10);
     expect(b.recordGameOver(runId: 'run'), 0);
     await b.persist();
-    final c = AppState(); await c.load();
+    final c = AppState();
+    await c.load();
     expect(c.activeRun, isNull);
   });
 }

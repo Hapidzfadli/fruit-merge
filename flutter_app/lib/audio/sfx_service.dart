@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+
 import '../state/app_state.dart';
 
 /// Port of the SFX wrapper + startMusic/stopMusic from audio.js, using
@@ -14,7 +15,10 @@ class SfxService {
 
   // A small round-robin pool so overlapping sounds (e.g. a fast merge
   // chain) can play concurrently instead of cutting each other off.
-  final List<AudioPlayer> _pool = List.generate(4, (i) => AudioPlayer(playerId: 'sfx_pool_$i'));
+  final List<AudioPlayer> _pool = List.generate(
+    4,
+    (i) => AudioPlayer(playerId: 'sfx_pool_$i'),
+  );
   int _poolIndex = 0;
 
   AudioPlayer? _musicPlayer;
@@ -66,11 +70,15 @@ class SfxService {
   /// ReleaseMode.loop, which is equivalent and cheaper.
   Future<void> startMusic() => _enqueue(() async {
     if (!appState.music) return;
-    if (_musicPlayer != null) return; // matches "if (musicNodes) return;" no-op guard
+    if (_musicPlayer != null) {
+      return; // matches "if (musicNodes) return;" no-op guard
+    }
     final player = AudioPlayer(playerId: 'music');
     _musicPlayer = player;
     await player.setReleaseMode(ReleaseMode.loop);
-    await player.setVolume(1.0); // gain is already baked into loop.wav's envelope
+    await player.setVolume(
+      1.0,
+    ); // gain is already baked into loop.wav's envelope
     await player.play(AssetSource('music/loop.wav'));
   });
 
@@ -78,7 +86,11 @@ class SfxService {
     final player = _musicPlayer;
     if (player == null) return;
     _musicPlayer = null;
-    try { await player.stop(); } finally { await player.dispose(); }
+    try {
+      await player.stop();
+    } finally {
+      await player.dispose();
+    }
   });
 
   Future<void> dispose() async {

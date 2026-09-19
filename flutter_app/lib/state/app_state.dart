@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/skin_data.dart';
 import '../models/run_snapshot.dart';
 
@@ -30,8 +32,16 @@ class AppState extends ChangeNotifier {
   List<Map<String, dynamic>> ranking = [];
   Set<int> collection = {};
   Set<String> achievements = {};
-  static const achievementRewards = {'merge': 20, 'score1000': 50, 'watermelon': 100};
-  static const achievementNames = {'merge': 'Merge pertama', 'score1000': '1.000 poin dalam satu permainan', 'watermelon': 'Semangka pertama'};
+  static const achievementRewards = {
+    'merge': 20,
+    'score1000': 50,
+    'watermelon': 100,
+  };
+  static const achievementNames = {
+    'merge': 'Merge pertama',
+    'score1000': '1.000 poin dalam satu permainan',
+    'watermelon': 'Semangka pertama',
+  };
 
   void _award(String id) {
     if (achievements.add(id)) coins += achievementRewards[id]!;
@@ -46,6 +56,7 @@ class AppState extends ChangeNotifier {
     persist();
     notifyListeners();
   }
+
   Future<void> _writes = Future.value();
 
   Future<void> saveRun(RunSnapshot snapshot) {
@@ -58,7 +69,9 @@ class AppState extends ChangeNotifier {
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_saveKey);
-    if (raw == null) return; // keep defaults, matching loadSave()'s catch branch
+    if (raw == null) {
+      return; // keep defaults, matching loadSave()'s catch branch
+    }
     try {
       final data = jsonDecode(raw) as Map<String, dynamic>;
       highScore = (data['highScore'] as num?)?.toInt() ?? 0;
@@ -69,21 +82,47 @@ class AppState extends ChangeNotifier {
       final knownIds = kSkins.map((s) => s.id).toSet();
       final savedSkin = data['equippedSkin'] as String?;
       equippedSkin = knownIds.contains(savedSkin) ? savedSkin! : kDefaultSkinId;
-      final owned = (data['ownedSkins'] as List?)?.cast<String>().where(knownIds.contains).toList();
-      ownedSkins = (owned != null && owned.isNotEmpty) ? owned : [kDefaultSkinId];
+      final owned = (data['ownedSkins'] as List?)
+          ?.cast<String>()
+          .where(knownIds.contains)
+          .toList();
+      ownedSkins = (owned != null && owned.isNotEmpty)
+          ? owned
+          : [kDefaultSkinId];
       if (!ownedSkins.contains(kDefaultSkinId)) ownedSkins.add(kDefaultSkinId);
       music = data['music'] != false;
       sfx = data['sfx'] != false;
       vibration = data['vibration'] != false;
       tutorialSeen = data['tutorialSeen'] == true;
-      collection = (data['collection'] as List? ?? []).whereType<int>().where((i) => i >= 1 && i <= 9).toSet();
-      achievements = (data['achievements'] as List? ?? []).whereType<String>().where(achievementRewards.containsKey).toSet();
+      collection = (data['collection'] as List? ?? [])
+          .whereType<int>()
+          .where((i) => i >= 1 && i <= 9)
+          .toSet();
+      achievements = (data['achievements'] as List? ?? [])
+          .whereType<String>()
+          .where(achievementRewards.containsKey)
+          .toSet();
       activeRun = RunSnapshot.parse(data['activeRun']);
-      completedRuns = (data['completedRuns'] as List? ?? []).whereType<String>().toList();
-      ranking = (data['ranking'] as List? ?? []).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).where((e) =>
-        e['score'] is int && e['level'] is int && (e['level'] as int) >= 0 && (e['level'] as int) < 10 &&
-        e['date'] is String && DateTime.tryParse(e['date'] as String) != null).take(10).toList();
-      if (activeRun != null && completedRuns.contains(activeRun!.id)) activeRun = null;
+      completedRuns = (data['completedRuns'] as List? ?? [])
+          .whereType<String>()
+          .toList();
+      ranking = (data['ranking'] as List? ?? [])
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .where(
+            (e) =>
+                e['score'] is int &&
+                e['level'] is int &&
+                (e['level'] as int) >= 0 &&
+                (e['level'] as int) < 10 &&
+                e['date'] is String &&
+                DateTime.tryParse(e['date'] as String) != null,
+          )
+          .take(10)
+          .toList();
+      if (activeRun != null && completedRuns.contains(activeRun!.id)) {
+        activeRun = null;
+      }
       notifyListeners();
     } catch (_) {
       // corrupt save data — keep defaults, same fallback behavior as loadSave()
@@ -103,11 +142,14 @@ class AppState extends ChangeNotifier {
       'activeRun': activeRun?.data,
       'completedRuns': completedRuns,
       'ranking': ranking,
-      'collection': collection.toList(), 'achievements': achievements.toList(),
+      'collection': collection.toList(),
+      'achievements': achievements.toList(),
     });
     final write = _writes.then((_) async {
       final prefs = await SharedPreferences.getInstance();
-      if (!await prefs.setString(_saveKey, encoded)) throw StateError('Save failed');
+      if (!await prefs.setString(_saveKey, encoded)) {
+        throw StateError('Save failed');
+      }
     });
     _writes = write.catchError((Object _) {});
     return write;
@@ -130,12 +172,19 @@ class AppState extends ChangeNotifier {
     if (runId != null && completedRuns.contains(runId)) return 0;
     if (runId != null) completedRuns.add(runId);
     activeRun = null;
-    ranking.add({'score': score, 'level': highestLevel, 'order': completedRuns.length, 'date': DateTime.now().toUtc().toIso8601String()});
+    ranking.add({
+      'score': score,
+      'level': highestLevel,
+      'order': completedRuns.length,
+      'date': DateTime.now().toUtc().toIso8601String(),
+    });
     ranking.sort((a, b) {
       final scores = (b['score'] as int).compareTo(a['score'] as int);
       if (scores != 0) return scores;
       final dates = (b['date'] as String).compareTo(a['date'] as String);
-      return dates != 0 ? dates : ((b['order'] as int?) ?? 0).compareTo((a['order'] as int?) ?? 0);
+      return dates != 0
+          ? dates
+          : ((b['order'] as int?) ?? 0).compareTo((a['order'] as int?) ?? 0);
     });
     ranking = ranking.take(10).toList();
     if (score > highScore) highScore = score;
