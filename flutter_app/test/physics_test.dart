@@ -118,6 +118,64 @@ void main() {
     });
   });
 
+  group('board scale', () {
+    test('watermelon is half the board width and sizes strictly grow', () {
+      expect(kFruits.first.size, 28);
+      expect(kFruits.last.size, FruitMergeGame.pw / 2);
+      for (var i = 1; i < kFruits.length; i++) {
+        expect(kFruits[i].size, greaterThan(kFruits[i - 1].size));
+      }
+    });
+  });
+
+  group('settled pile stability', () {
+    // A settled bottom row must not be knocked sideways by a fruit landing
+    // beside/on it — otherwise same-level neighbours get shoved together
+    // and merge for free.
+    double shove(int dropIndex, double dropX) {
+      final game = _makeGame();
+      const row = [3, 5, 2, 6, 4, 1];
+      var x = 0.0;
+      final bottom = <FruitBody>[];
+      for (final idx in row) {
+        final r = kFruits[idx].size / 2;
+        if (x + r * 2 > FruitMergeGame.pw) break;
+        final f = FruitBody(
+          position: Vector2(x + r, FruitMergeGame.ph - r),
+          index: idx,
+          spawnAt: 0,
+        );
+        bottom.add(f);
+        game.fruits.add(f);
+        x += r * 2;
+      }
+      _simulate(game, 3);
+      final before = [for (final f in bottom) f.position.clone()];
+
+      game.currentIndex = dropIndex;
+      game.dropX = dropX;
+      game.dropFruit();
+      _simulate(game, 2);
+
+      var worst = 0.0;
+      for (var i = 0; i < bottom.length; i++) {
+        final moved = (bottom[i].position - before[i]).length;
+        if (moved > worst) worst = moved;
+      }
+      return worst;
+    }
+
+    test('a light fruit landing on the pile barely moves the bottom row', () {
+      expect(shove(0, 60), lessThan(8));
+      expect(shove(0, 150), lessThan(8));
+    });
+
+    test('a mid-size fruit landing on the pile barely moves the bottom row', () {
+      expect(shove(3, 100), lessThan(10));
+      expect(shove(2, 200), lessThan(10));
+    });
+  });
+
   group('game over', () {
     test('fires once a fruit sits past the line for overLimitMs', () {
       var fired = false;

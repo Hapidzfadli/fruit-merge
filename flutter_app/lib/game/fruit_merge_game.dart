@@ -38,12 +38,22 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   /// Overlap-relaxation sweeps per substep. The analogue of Matter.js's
   /// positionIterations (app.js:506 used 14); circles-only contacts
   /// converge much faster than Matter's general solver, so fewer suffice.
-  static const int _positionIterations = 10;
+  static const int _positionIterations = 32;
 
   /// Approach speed (px/s) below which a contact is treated as resting
   /// rather than an impact — see the restitution note in
   /// [_resolveCirclePair]. Roughly one frame's worth of gravity.
   static const double _restingSpeed = 30;
+
+  /// Speed (px/s) below which a fruit counts as part of the settled pile,
+  /// and how much heavier it then behaves in a collision — see
+  /// [_effectiveMass].
+  static const double _settledSpeed = 150;
+  static const double _settledMassBoost = 8;
+
+  /// Terminal fall speed (px/s). Without it a fruit dropped from the top
+  /// lands at ~1100 px/s and its impact throws the pile sideways.
+  static const double _maxFallSpeed = 900;
 
   final void Function(int amount) onScore;
   final void Function(int level) onMerge; // caller plays SFX + vibration
@@ -200,7 +210,7 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     for (var s = 0; s < substeps; s++) {
       for (final f in fruits) {
         if (f.dead) continue;
-        f.velocity.y += gravity * sub;
+        f.velocity.y = math.min(f.velocity.y + gravity * sub, _maxFallSpeed);
         // Cap speed so a deep-overlap collision impulse (e.g. several
         // fruits merging into a tight spot at once) can't snowball into
         // NaN/Infinity over a few frames — that previously surfaced as a
@@ -279,7 +289,7 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
       if (f.velocity.y > 0) f.velocity.y = 0;
       // Floor friction (Matter wallOpts had no restitution, only friction —
       // app.js:509) damps horizontal velocity while resting on the floor.
-      f.velocity.x *= (1 - f.friction * 0.06).clamp(0.0, 1.0);
+      f.velocity.x *= (1 - f.friction * 0.3).clamp(0.0, 1.0);
     }
   }
 
@@ -310,8 +320,8 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
           normal = delta / dist;
         }
         final overlap = minDist - dist;
-        final massA = a.radius * a.radius;
-        final massB = b.radius * b.radius;
+        final massA = _effectiveMass(a);
+        final massB = _effectiveMass(b);
         final totalMass = massA + massB;
         a.position -= normal * (overlap * (massB / totalMass));
         b.position += normal * (overlap * (massA / totalMass));
@@ -349,6 +359,18 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     }
   }
 
+  /// Effective mass of [f] in a contact. A fruit that is already settled
+  /// belongs to the pile: it is braced by the floor, the walls and the fruit
+  /// stacked on it, so a falling fruit must not be able to shove it around
+  /// like a free body (that let the player nudge same-level neighbours
+  /// together at the bottom and merge them for free).
+  double _effectiveMass(FruitBody f) {
+    final base = f.radius * f.radius;
+    return f.velocity.length2 < _settledSpeed * _settledSpeed
+        ? base * _settledMassBoost
+        : base;
+  }
+
   void _resolveCirclePair(
     FruitBody a,
     FruitBody b,
@@ -358,8 +380,8 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
   ) {
     final normal = delta / dist;
     final overlap = minDist - dist;
-    final massA = a.radius * a.radius;
-    final massB = b.radius * b.radius;
+    final massA = _effectiveMass(a);
+    final massB = _effectiveMass(b);
     final totalMass = massA + massB;
 
     a.position -= normal * (overlap * (massB / totalMass));
@@ -387,7 +409,7 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
     final tangent = Vector2(-normal.y, normal.x);
     final velAlongTangent = relVel.dot(tangent);
     final frictionCoeff = (a.friction + b.friction) / 2;
-    final frictionImpulseMag = -velAlongTangent * frictionCoeff * 0.3;
+    final frictionImpulseMag = -velAlongTangent * frictionCoeff * 0.6;
     final frictionImpulse = tangent * frictionImpulseMag;
     a.velocity -= frictionImpulse * invMassA;
     b.velocity += frictionImpulse * invMassB;
@@ -441,14 +463,15 @@ class FruitMergeGame extends FlameGame with TapCallbacks {
       ); // ~0.055/frame @ 60fps — app.js:561
 
       // Danger timer. Unlike app.js (logic.md §8.4) this deliberately does
-      // NOT require the fruit to be settled: the rule is simply "top of the
-      // fruit is past the line" — a fruit jostling around up there is just
-      // as lost as one sitting still, and requiring stillness meant a
-      // restless pile could dodge game over indefinitely.
+      // NOT require the fruit to be settled: the rule is simply "bottom of
+      // the fruit is above the line" (the whole fruit is over it, a fruit
+      // merely poking over the line is still fine) — a fruit jostling around
+      // up there is just as lost as one sitting still, and requiring
+      // stillness meant a restless pile could dodge game over indefinitely.
       // The grace period still applies so a fruit that spawns at the top
       // and is merely falling through the zone doesn't flash a warning.
       final ageMs = (_clock - f.spawnAt) * 1000;
-      if (ageMs > 500 && f.position.y - f.radius < lineY) {
+      if (ageMs > 500 && f.position.y + f.radius < lineY) {
         f.overMs += dt * 1000;
       } else {
         f.overMs = 0; // dropped back below the line — reset, per the spec
